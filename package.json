@@ -1,0 +1,31 @@
+{
+  "name": "sentry-protocol",
+  "version": "0.1.0",
+  "description": "Agent-native KOL signal intelligence on Solana via x402 micropayments",
+  "main": "dist/index.js",
+  "scripts": {
+    "build": "tsc",
+    "start": "node dist/index.js",
+    "dev": "tsc && SENTRY_DEV_MODE=true node dist/index.js",
+    "watch": "tsc --watch"
+  },
+  "keywords": ["solana", "ai-agents", "x402", "kol", "signal", "defi"],
+  "author": "brandononchain",
+  "license": "MIT",
+  "dependencies": {
+    "@solana/web3.js": "^1.98.4",
+    "@types/cors": "^2.8.19",
+    "@types/express": "^5.0.6",
+    "@types/node": "^25.6.1",
+    "@types/uuid": "^10.0.0",
+    "@types/ws": "^8.18.1",
+    "bs58": "^6.0.0",
+    "cors": "^2.8.6",
+    "dotenv": "^17.4.2",
+    "express": "^5.2.1",
+    "ioredis": "^5.10.1",
+    "typescript": "^6.0.3",
+    "uuid": "^14.0.0",
+    "ws": "^8.20.0"
+  }
+}
