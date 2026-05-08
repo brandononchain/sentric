@@ -12,231 +12,384 @@
 <script type="application/ld+json">{"@context":"https://schema.org","@type":"SoftwareApplication","name":"SENTRY Protocol","applicationCategory":"FinanceApplication","url":"https://sentry-protocol.xyz","description":"Agent-native KOL signal intelligence on Solana via x402 micropayments.","offers":{"@type":"Offer","price":"0.001","priceCurrency":"USD"},"creator":{"@type":"Person","name":"brandononchain"}}</script>
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E%E2%97%88%3C/text%3E%3C/svg%3E">
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Geist+Mono:wght@300;400;500;600;700&family=Newsreader:ital,wght@0,400;1,400&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Geist+Mono:wght@300;400;500;600;700&family=Newsreader:ital,opsz,wght@0,6..72,400;1,6..72,400&display=swap" rel="stylesheet">
 <style>
-*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
-:root{
-  --bg:#09090b;--sf:#111113;--sf2:#18181c;
-  --ac:#c8ffd4;--ac2:#7eca8c;
-  --t1:#ededef;--t2:#a1a1a9;--t3:#56565e;--t4:#333338;
-  --bd:#1e1e23;--bd2:#2a2a30;
-  --m:'Geist Mono',ui-monospace,monospace;
-  --s:'Newsreader',Georgia,serif;
-  --eo:cubic-bezier(0.23,1,0.32,1);
-  --eio:cubic-bezier(0.77,0,0.175,1);
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --bg: #09090b;
+  --sf: #111113;
+  --sf2: #18181c;
+  --ac: #c8ffd4;
+  --ac2: #7eca8c;
+  --t1: #ededef;
+  --t2: #a1a1a9;
+  --t3: #56565e;
+  --t4: #333338;
+  --bd: #1e1e23;
+  --bd2: #2a2a30;
+  --mono: 'Geist Mono', ui-monospace, monospace;
+  --serif: 'Newsreader', Georgia, serif;
+  --eo: cubic-bezier(0.23, 1, 0.32, 1);
+  --eio: cubic-bezier(0.77, 0, 0.175, 1);
+  --pad: clamp(20px, 6vw, 32px);
 }
-html{font-size:16px;scroll-behavior:smooth;-webkit-text-size-adjust:100%}
-body{background:var(--bg);color:var(--t1);font-family:var(--m);line-height:1.6;overflow-x:hidden;-webkit-font-smoothing:antialiased;min-height:100dvh}
-a{color:inherit;text-decoration:none}
 
-/* Skip link — only visible on focus */
-.skip{position:absolute;top:-999px;left:16px;background:var(--ac);color:var(--bg);padding:8px 16px;z-index:200;font-size:12px;border-radius:4px;font-family:var(--m)}
-.skip:focus{top:16px}
+html { font-size: 16px; scroll-behavior: smooth; -webkit-text-size-adjust: 100%; scroll-padding-top: 80px; }
+body { background: var(--bg); color: var(--t1); font-family: var(--mono); line-height: 1.6; overflow-x: hidden; -webkit-font-smoothing: antialiased; min-height: 100dvh; }
+a { color: inherit; text-decoration: none; }
 
-.ct{max-width:1080px;margin:0 auto;padding:0 clamp(20px,5vw,32px)}
+/* Skip link */
+.skip { position: absolute; top: -999px; left: 16px; background: var(--ac); color: var(--bg); padding: 8px 16px; z-index: 200; font-size: 12px; border-radius: 4px; font-family: var(--mono); }
+.skip:focus { top: 16px; }
 
-/* ═══════════════════════════════
-   NAV — section links only
-   ═══════════════════════════════ */
-nav{position:fixed;top:0;left:0;right:0;z-index:40;padding:clamp(12px,2vw,20px) clamp(20px,5vw,32px)}
-.np{max-width:1080px;margin:0 auto;display:flex;justify-content:space-between;align-items:center;padding:10px 20px;border-radius:999px;background:rgba(9,9,11,0.82);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);border:1px solid var(--bd)}
-.lg{font-size:12px;font-weight:600;letter-spacing:0.25em;text-transform:uppercase;color:var(--ac)}
-.lg span{color:var(--t3);font-weight:400;letter-spacing:0.15em}
-.ni{display:flex;gap:28px;align-items:center}
-.ni a{color:var(--t3);font-size:10px;letter-spacing:0.12em;text-transform:uppercase;transition:color 0.25s var(--eo)}
-.hb{display:none;background:none;border:none;cursor:pointer;padding:8px;-webkit-tap-highlight-color:transparent}
-.hb span{display:block;width:16px;height:1.5px;background:var(--t2);transition:all 0.35s var(--eo)}.hb span+span{margin-top:4px}
-.hb.on span:nth-child(1){transform:rotate(45deg) translate(3.5px,3.5px)}
-.hb.on span:nth-child(2){opacity:0;transform:scaleX(0)}
-.hb.on span:nth-child(3){transform:rotate(-45deg) translate(3.5px,-3.5px)}
+/* Container — generous mobile padding */
+.ct { max-width: 1080px; margin: 0 auto; padding-left: var(--pad); padding-right: var(--pad); }
+
+/* ═══════════════════════════
+   NAV
+   ═══════════════════════════ */
+nav { position: fixed; top: 0; left: 0; right: 0; z-index: 40; padding: 12px var(--pad); }
+.np {
+  max-width: 1080px; margin: 0 auto;
+  display: flex; justify-content: space-between; align-items: center;
+  padding: 10px 20px; border-radius: 999px;
+  background: rgba(9,9,11,0.85); backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px);
+  border: 1px solid var(--bd);
+}
+.logo { font-size: 12px; font-weight: 600; letter-spacing: 0.25em; text-transform: uppercase; color: var(--ac); }
+.logo span { color: var(--t3); font-weight: 400; letter-spacing: 0.15em; }
+.nav-links { display: flex; gap: 28px; align-items: center; }
+.nav-links a { color: var(--t3); font-size: 10px; letter-spacing: 0.12em; text-transform: uppercase; transition: color 0.25s var(--eo); }
+
+/* Hamburger */
+.ham { display: none; background: none; border: none; cursor: pointer; padding: 8px; -webkit-tap-highlight-color: transparent; }
+.ham span { display: block; width: 16px; height: 1.5px; background: var(--t2); transition: all 0.35s var(--eo); }
+.ham span + span { margin-top: 4px; }
+.ham.on span:nth-child(1) { transform: rotate(45deg) translate(3.5px, 3.5px); }
+.ham.on span:nth-child(2) { opacity: 0; transform: scaleX(0); }
+.ham.on span:nth-child(3) { transform: rotate(-45deg) translate(3.5px, -3.5px); }
 
 /* Mobile overlay */
-.mo{display:none;position:fixed;inset:0;z-index:39;background:rgba(9,9,11,0.97);flex-direction:column;align-items:center;justify-content:center;gap:28px;opacity:0;pointer-events:none;transition:opacity 0.35s var(--eo)}
-.mo.on{opacity:1;pointer-events:auto}
-.mo a{color:var(--t1);font-size:14px;letter-spacing:0.15em;text-transform:uppercase;font-weight:500;opacity:0;transform:translateY(10px);transition:opacity 0.3s var(--eo),transform 0.3s var(--eo),color 0.2s}
-.mo.on a{opacity:1;transform:translateY(0)}
-.mo.on a:nth-child(1){transition-delay:60ms}
-.mo.on a:nth-child(2){transition-delay:100ms}
-.mo.on a:nth-child(3){transition-delay:140ms}
-.mo.on a:nth-child(4){transition-delay:180ms}
+.mob-nav {
+  display: none; position: fixed; inset: 0; z-index: 39;
+  background: rgba(9,9,11,0.97);
+  flex-direction: column; align-items: center; justify-content: center; gap: 32px;
+  opacity: 0; pointer-events: none; transition: opacity 0.35s var(--eo);
+}
+.mob-nav.on { opacity: 1; pointer-events: auto; }
+.mob-nav a {
+  color: var(--t1); font-size: 16px; letter-spacing: 0.15em; text-transform: uppercase; font-weight: 500;
+  opacity: 0; transform: translateY(10px);
+  transition: opacity 0.3s var(--eo), transform 0.3s var(--eo), color 0.2s;
+}
+.mob-nav.on a { opacity: 1; transform: translateY(0); }
+.mob-nav.on a:nth-child(1) { transition-delay: 60ms; }
+.mob-nav.on a:nth-child(2) { transition-delay: 100ms; }
+.mob-nav.on a:nth-child(3) { transition-delay: 140ms; }
+.mob-nav.on a:nth-child(4) { transition-delay: 180ms; }
 
-@media(hover:hover)and(pointer:fine){.ni a:hover{color:var(--t1)}.mo a:hover{color:var(--ac2)}}
-@media(max-width:768px){.ni{display:none}.hb{display:block}.mo{display:flex}}
+@media (hover: hover) and (pointer: fine) { .nav-links a:hover { color: var(--t1); } .mob-nav a:hover { color: var(--ac2); } }
+@media (max-width: 768px) { .nav-links { display: none; } .ham { display: block; } .mob-nav { display: flex; } }
 
-/* ═══════════════════════════════
+/* ═══════════════════════════
    TAG PILL
-   ═══════════════════════════════ */
-.tg{display:inline-flex;align-items:center;gap:6px;padding:5px 12px;border-radius:999px;font-size:9px;letter-spacing:0.18em;text-transform:uppercase;font-weight:500;color:var(--ac2);border:1px solid var(--bd2)}
-.tg .pu{width:4px;height:4px;border-radius:50%;background:var(--ac2);animation:pu 2.4s ease infinite}
-@keyframes pu{0%,100%{opacity:1}50%{opacity:0.2}}
+   ═══════════════════════════ */
+.tag {
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 5px 12px; border-radius: 999px;
+  font-size: 9px; letter-spacing: 0.18em; text-transform: uppercase; font-weight: 500;
+  color: var(--ac2); border: 1px solid var(--bd2);
+}
+.tag .dot { width: 4px; height: 4px; border-radius: 50%; background: var(--ac2); animation: pulse 2.4s ease infinite; }
+@keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.2; } }
 
-/* ═══════════════════════════════
+/* ═══════════════════════════
    HERO
-   ═══════════════════════════════ */
-.hero{min-height:100dvh;display:flex;flex-direction:column;justify-content:center;padding:clamp(100px,16vw,160px) 0 clamp(80px,12vw,120px)}
-.hero .he{opacity:0;transform:translateY(24px);transition:opacity 0.7s var(--eo),transform 0.7s var(--eo)}
-.hero .he.in{opacity:1;transform:translateY(0)}
-.hero h1{font-family:var(--s);font-weight:400;font-style:italic;font-size:clamp(2.4rem,7vw,5.6rem);line-height:1.02;letter-spacing:-0.02em;margin:clamp(18px,3vw,32px) 0 clamp(18px,3vw,28px);color:var(--t1)}
-.hero h1 em{font-style:normal;color:var(--ac)}
-.hero-p{font-size:clamp(11.5px,1.3vw,13px);color:var(--t2);max-width:500px;line-height:1.85;font-weight:300;margin-bottom:clamp(32px,5vw,48px)}
+   ═══════════════════════════ */
+.hero {
+  min-height: 100dvh; display: flex; flex-direction: column; justify-content: center;
+  padding-top: clamp(100px, 16vw, 160px);
+  padding-bottom: clamp(48px, 8vw, 80px);
+}
+
+.hero h1 {
+  font-family: var(--serif); font-weight: 400; font-style: italic;
+  font-size: clamp(2.2rem, 8vw, 5.6rem);
+  line-height: 1.05; letter-spacing: -0.02em;
+  margin: 20px 0 20px;
+  color: var(--t1);
+  padding-left: 2px; /* compensate italic negative bearing */
+}
+.hero h1 em { font-style: normal; color: var(--ac); }
+
+.hero-sub {
+  font-size: clamp(11px, 1.3vw, 13px); color: var(--t2);
+  max-width: 500px; line-height: 1.85; font-weight: 300;
+  margin-bottom: 32px;
+}
 
 /* Buttons */
-.ha{display:flex;gap:10px;flex-wrap:wrap}
-.ha-c{justify-content:center}
-.bp{display:inline-flex;align-items:center;gap:8px;padding:12px 22px;border-radius:999px;font-size:11px;letter-spacing:0.1em;text-transform:uppercase;font-weight:600;background:var(--t1);color:var(--bg);border:none;cursor:pointer;font-family:var(--m);transition:opacity 0.2s var(--eo),transform 0.15s var(--eo);-webkit-tap-highlight-color:transparent}
-.bp:active{transform:scale(0.97)}
-.bp .ic{display:flex;align-items:center;justify-content:center;width:20px;height:20px;border-radius:50%;background:rgba(9,9,11,0.1);font-size:10px;transition:transform 0.35s var(--eo)}
-.bs{display:inline-flex;align-items:center;padding:12px 22px;border-radius:999px;font-size:11px;letter-spacing:0.1em;text-transform:uppercase;font-weight:500;background:transparent;color:var(--t2);border:1px solid var(--bd2);cursor:pointer;font-family:var(--m);transition:border-color 0.25s var(--eo),color 0.25s var(--eo),transform 0.15s var(--eo);-webkit-tap-highlight-color:transparent}
-.bs:active{transform:scale(0.97)}
-@media(hover:hover)and(pointer:fine){
-  .bp:hover{opacity:0.9}.bp:hover .ic{transform:translate(2px,-1px)}
-  .bs:hover{border-color:var(--t3);color:var(--t1)}
+.actions { display: flex; gap: 10px; flex-wrap: wrap; }
+.actions-center { justify-content: center; }
+
+.btn-primary {
+  display: inline-flex; align-items: center; gap: 8px;
+  padding: 12px 22px; border-radius: 999px;
+  font-size: 11px; letter-spacing: 0.1em; text-transform: uppercase; font-weight: 600;
+  background: var(--t1); color: var(--bg); border: none; cursor: pointer;
+  font-family: var(--mono); transition: opacity 0.2s var(--eo), transform 0.15s var(--eo);
+  -webkit-tap-highlight-color: transparent;
+}
+.btn-primary:active { transform: scale(0.97); }
+.btn-primary .arrow {
+  display: flex; align-items: center; justify-content: center;
+  width: 20px; height: 20px; border-radius: 50%; background: rgba(9,9,11,0.1);
+  font-size: 10px; transition: transform 0.35s var(--eo);
+}
+.btn-ghost {
+  display: inline-flex; align-items: center;
+  padding: 12px 22px; border-radius: 999px;
+  font-size: 11px; letter-spacing: 0.1em; text-transform: uppercase; font-weight: 500;
+  background: transparent; color: var(--t2); border: 1px solid var(--bd2); cursor: pointer;
+  font-family: var(--mono); transition: border-color 0.25s var(--eo), color 0.25s var(--eo), transform 0.15s var(--eo);
+  -webkit-tap-highlight-color: transparent;
+}
+.btn-ghost:active { transform: scale(0.97); }
+@media (hover: hover) and (pointer: fine) {
+  .btn-primary:hover { opacity: 0.9; }
+  .btn-primary:hover .arrow { transform: translate(2px, -1px); }
+  .btn-ghost:hover { border-color: var(--t3); color: var(--t1); }
 }
 
-/* Metrics */
-.ms{display:grid;grid-template-columns:repeat(4,1fr);gap:1px;margin-top:clamp(56px,10vw,96px);background:var(--bd);border-radius:12px;overflow:hidden}
-.mt{background:var(--sf);padding:clamp(16px,3vw,24px)}
-.mv{font-size:clamp(18px,2.5vw,24px);font-weight:700;color:var(--t1);font-variant-numeric:tabular-nums}
-.ml{font-size:9px;color:var(--t3);letter-spacing:0.15em;text-transform:uppercase;margin-top:4px}
-@media(max-width:640px){.ms{grid-template-columns:1fr 1fr}}
-
-/* ═══════════════════════════════
-   FEED
-   ═══════════════════════════════ */
-.fw{padding:clamp(32px,5vw,48px) 0 clamp(64px,10vw,100px)}
-.fd{border:1px solid var(--bd);border-radius:12px;overflow:hidden;background:var(--sf)}
-.ft2{padding:12px clamp(16px,3vw,20px);border-bottom:1px solid var(--bd);display:flex;justify-content:space-between;align-items:center}
-.ft2 h2{font-size:10px;letter-spacing:0.14em;text-transform:uppercase;color:var(--t2);font-weight:500;display:flex;align-items:center;gap:6px}
-.ft2 h2::before{content:'';width:5px;height:5px;border-radius:50%;background:var(--ac2);animation:pu 2.4s ease infinite}
-.ft2 span{font-size:9px;color:var(--t4)}
-.fb{max-height:272px;overflow:hidden}
-.fr{display:grid;grid-template-columns:80px 1fr 48px 52px 64px;padding:9px clamp(16px,3vw,20px);border-bottom:1px solid var(--bd);font-size:10.5px;align-items:center;gap:8px}
-.fr:last-child{border-bottom:none}
-.fk{color:var(--ac2);font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.ftk{color:var(--t2);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.fa{font-weight:600;font-size:10px}.fab{color:var(--ac2)}.fas{color:#e57373}
-.fsc{color:var(--t3);font-variant-numeric:tabular-nums}
-.ftm{color:var(--t4);text-align:right;font-variant-numeric:tabular-nums}
-@media(max-width:640px){
-  .fr{grid-template-columns:60px 1fr 36px 40px;font-size:10px;padding:8px 12px;gap:6px}
-  .ftm{display:none}
+/* Metrics strip */
+.metrics {
+  display: grid; grid-template-columns: repeat(4, 1fr); gap: 1px;
+  margin-top: 40px;
+  background: var(--bd); border-radius: 12px; overflow: hidden;
 }
-@media(max-width:380px){
-  .fr{grid-template-columns:52px 1fr 32px 36px;font-size:9px;gap:4px}
-}
+.metric-cell { background: var(--sf); padding: 18px 16px; }
+.metric-val { font-size: clamp(16px, 2.5vw, 22px); font-weight: 700; color: var(--t1); font-variant-numeric: tabular-nums; }
+.metric-label { font-size: 8px; color: var(--t3); letter-spacing: 0.15em; text-transform: uppercase; margin-top: 4px; }
+@media (max-width: 640px) { .metrics { grid-template-columns: 1fr 1fr; } }
 
-/* ═══════════════════════════════
+/* ═══════════════════════════
+   LIVE FEED
+   ═══════════════════════════ */
+.feed-wrap { padding: 32px 0 56px; }
+.feed { border: 1px solid var(--bd); border-radius: 12px; overflow: hidden; background: var(--sf); }
+.feed-header {
+  padding: 12px 16px; border-bottom: 1px solid var(--bd);
+  display: flex; justify-content: space-between; align-items: center;
+}
+.feed-header h2 {
+  font-size: 10px; letter-spacing: 0.14em; text-transform: uppercase;
+  color: var(--t2); font-weight: 500;
+  display: flex; align-items: center; gap: 6px;
+}
+.feed-header h2::before { content: ''; width: 5px; height: 5px; border-radius: 50%; background: var(--ac2); animation: pulse 2.4s ease infinite; }
+.feed-header span { font-size: 9px; color: var(--t4); }
+.feed-body { max-height: 264px; overflow: hidden; }
+.feed-row {
+  display: grid; grid-template-columns: 72px 1fr 40px 44px;
+  padding: 8px 16px; border-bottom: 1px solid var(--bd);
+  font-size: 10px; align-items: center; gap: 6px;
+}
+.feed-row:last-child { border-bottom: none; }
+.feed-kol { color: var(--ac2); font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.feed-tok { color: var(--t2); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.feed-act { font-weight: 600; font-size: 9px; }
+.feed-buy { color: var(--ac2); }
+.feed-sell { color: #e57373; }
+.feed-score { color: var(--t3); font-variant-numeric: tabular-nums; text-align: right; }
+
+/* ═══════════════════════════
    SECTIONS
-   ═══════════════════════════════ */
-.sc{padding:clamp(80px,14vw,160px) 0 clamp(64px,10vw,100px)}
-.sc+.sc{border-top:1px solid var(--bd)}
-.sh{margin-bottom:clamp(32px,6vw,56px)}
-.sh h2{font-family:var(--s);font-style:italic;font-weight:400;font-size:clamp(1.6rem,4vw,2.8rem);line-height:1.15;letter-spacing:-0.01em;margin-top:clamp(10px,2vw,16px);color:var(--t1)}
-.sh p{font-size:clamp(11px,1.2vw,12.5px);color:var(--t2);max-width:440px;margin-top:12px;line-height:1.8;font-weight:300}
+   ═══════════════════════════ */
+.section { padding: clamp(56px, 10vw, 120px) 0; }
+.section + .section { border-top: 1px solid var(--bd); }
+.section-head { margin-bottom: clamp(28px, 5vw, 48px); }
+.section-head h2 {
+  font-family: var(--serif); font-style: italic; font-weight: 400;
+  font-size: clamp(1.5rem, 4vw, 2.6rem); line-height: 1.15; letter-spacing: -0.01em;
+  margin-top: 10px; color: var(--t1);
+}
+.section-head p {
+  font-size: clamp(11px, 1.2vw, 12.5px); color: var(--t2);
+  max-width: 440px; margin-top: 10px; line-height: 1.8; font-weight: 300;
+}
 
-/* ═══════════════════════════════
-   FLOW 3-col → 1-col mobile
-   ═══════════════════════════════ */
-.fl{display:grid;grid-template-columns:repeat(3,1fr);gap:1px;background:var(--bd);border-radius:12px;overflow:hidden}
-.fi{background:var(--sf);padding:clamp(24px,4vw,40px) clamp(18px,3vw,28px);transition:background 0.3s var(--eo)}
-.fn2{font-size:clamp(28px,4vw,48px);font-weight:700;color:var(--t4);line-height:1;margin-bottom:clamp(12px,2vw,20px);font-variant-numeric:tabular-nums;transition:color 0.3s var(--eo)}
-.fi h3{font-size:clamp(11px,1.2vw,13px);font-weight:600;letter-spacing:0.08em;text-transform:uppercase;margin-bottom:8px}
-.fi p{font-size:clamp(10.5px,1.1vw,11.5px);color:var(--t2);line-height:1.75;font-weight:300}
-@media(hover:hover)and(pointer:fine){.fi:hover{background:var(--sf2)}.fi:hover .fn2{color:var(--bd2)}}
-@media(max-width:768px){.fl{grid-template-columns:1fr}.fi{padding:20px 18px}.fn2{font-size:28px;margin-bottom:10px}}
+/* ═══════════════════════════
+   FLOW — 3 col / 1 col mobile
+   ═══════════════════════════ */
+.flow-grid {
+  display: grid; grid-template-columns: repeat(3, 1fr); gap: 1px;
+  background: var(--bd); border-radius: 12px; overflow: hidden;
+}
+.flow-step {
+  background: var(--sf); padding: 28px 20px;
+  transition: background 0.3s var(--eo);
+}
+.flow-num {
+  font-size: 32px; font-weight: 700; color: var(--t4); line-height: 1;
+  margin-bottom: 12px; font-variant-numeric: tabular-nums;
+}
+.flow-step h3 { font-size: 11px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; margin-bottom: 8px; }
+.flow-step p { font-size: 11px; color: var(--t2); line-height: 1.7; font-weight: 300; }
+@media (hover: hover) and (pointer: fine) { .flow-step:hover { background: var(--sf2); } }
+@media (max-width: 768px) {
+  .flow-grid { grid-template-columns: 1fr; }
+  .flow-step { padding: 20px 18px; }
+  .flow-num { font-size: 24px; margin-bottom: 8px; }
+}
 
-/* ═══════════════════════════════
-   ARCH 2x2 → 1-col mobile
-   ═══════════════════════════════ */
-.ag{display:grid;grid-template-columns:1fr 1fr;gap:1px;background:var(--bd);border-radius:12px;overflow:hidden}
-.ai2{background:var(--sf);padding:clamp(24px,4vw,36px) clamp(18px,3vw,28px);transition:background 0.3s var(--eo)}
-.aico{width:32px;height:32px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:15px;margin-bottom:14px;background:var(--sf2);color:var(--t2);border:1px solid var(--bd);transition:border-color 0.3s var(--eo),color 0.3s var(--eo)}
-.ai2 h3{font-size:clamp(11px,1.1vw,12px);font-weight:600;letter-spacing:0.06em;text-transform:uppercase;margin-bottom:6px}
-.ai2 p{font-size:clamp(10.5px,1vw,11px);color:var(--t2);line-height:1.75;font-weight:300}
-@media(hover:hover)and(pointer:fine){.ai2:hover{background:var(--sf2)}.ai2:hover .aico{border-color:var(--bd2);color:var(--t1)}}
-@media(max-width:640px){.ag{grid-template-columns:1fr}.ai2{padding:18px}}
+/* ═══════════════════════════
+   ARCH — 2x2 / 1 col mobile
+   ═══════════════════════════ */
+.arch-grid {
+  display: grid; grid-template-columns: 1fr 1fr; gap: 1px;
+  background: var(--bd); border-radius: 12px; overflow: hidden;
+}
+.arch-card {
+  background: var(--sf); padding: 28px 20px;
+  transition: background 0.3s var(--eo);
+}
+.arch-icon {
+  width: 28px; height: 28px; border-radius: 6px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 13px; margin-bottom: 12px;
+  background: var(--sf2); color: var(--t2); border: 1px solid var(--bd);
+}
+.arch-card h3 { font-size: 11px; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; margin-bottom: 6px; }
+.arch-card p { font-size: 10.5px; color: var(--t2); line-height: 1.7; font-weight: 300; }
+@media (hover: hover) and (pointer: fine) { .arch-card:hover { background: var(--sf2); } }
+@media (max-width: 640px) {
+  .arch-grid { grid-template-columns: 1fr; }
+  .arch-card { padding: 18px 16px; }
+}
 
-/* ═══════════════════════════════
-   CODE
-   ═══════════════════════════════ */
-.cw{border:1px solid var(--bd);border-radius:12px;overflow:hidden;background:var(--sf)}
-.cb{display:flex;justify-content:space-between;align-items:center;padding:14px 20px;border-bottom:1px solid var(--bd)}
-.cd{display:flex;gap:5px}.cd i{width:7px;height:7px;border-radius:50%;display:block;background:var(--t4)}
-.cn{font-size:10px;color:var(--t4)}
-.cc{padding:clamp(16px,3vw,24px) clamp(14px,3vw,24px);overflow-x:auto;-webkit-overflow-scrolling:touch}
-.cc pre{font-size:clamp(10px,1.1vw,11.5px);line-height:1.85;color:var(--t2);white-space:pre;tab-size:2}
-.k{color:var(--ac2)}.s{color:#d4976c}.c{color:var(--t4);font-style:italic}.f{color:#8ab4f8}.n{color:#d4c46a}
+/* ═══════════════════════════
+   CODE BLOCK
+   ═══════════════════════════ */
+.code-wrap { border: 1px solid var(--bd); border-radius: 12px; overflow: hidden; background: var(--sf); }
+.code-bar {
+  display: flex; justify-content: space-between; align-items: center;
+  padding: 12px 16px; border-bottom: 1px solid var(--bd);
+}
+.code-dots { display: flex; gap: 5px; }
+.code-dots i { width: 7px; height: 7px; border-radius: 50%; display: block; background: var(--t4); }
+.code-filename { font-size: 10px; color: var(--t4); }
+.code-body { padding: 16px; overflow-x: auto; -webkit-overflow-scrolling: touch; }
+.code-body pre { font-size: clamp(10px, 1.1vw, 11.5px); line-height: 1.85; color: var(--t2); white-space: pre; tab-size: 2; }
+.kw { color: var(--ac2); }
+.str { color: #d4976c; }
+.cmt { color: var(--t4); font-style: italic; }
+.fn { color: #8ab4f8; }
+.num { color: #d4c46a; }
 
-/* clip-path reveal */
-.rv-clip{clip-path:inset(0 0 100% 0);transition:clip-path 0.8s var(--eio)}
-.rv-clip.v{clip-path:inset(0 0 0 0)}
+/* ═══════════════════════════
+   PRICING — 3 col / 1 col
+   ═══════════════════════════ */
+.price-grid {
+  display: grid; grid-template-columns: repeat(3, 1fr); gap: 1px;
+  background: var(--bd); border-radius: 12px; overflow: hidden;
+}
+.price-card {
+  background: var(--sf); padding: 28px 20px;
+  position: relative; transition: background 0.3s var(--eo);
+}
+.price-card.featured { background: var(--sf2); }
+.price-card.featured::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px; background: var(--ac2); opacity: 0.5; }
+.price-card.featured .price-tier { color: var(--ac2); }
+.price-tier { font-size: 9px; letter-spacing: 0.2em; text-transform: uppercase; color: var(--t4); margin-bottom: 10px; }
+.price-amount { font-size: clamp(20px, 3vw, 26px); font-weight: 700; color: var(--t1); margin-bottom: 4px; }
+.price-amount span { font-size: 11px; font-weight: 300; color: var(--t3); }
+.price-note { font-size: 10px; color: var(--t4); margin-bottom: 16px; }
+.price-list { list-style: none; display: flex; flex-direction: column; gap: 8px; }
+.price-list li {
+  font-size: 10px; color: var(--t2); display: flex; align-items: flex-start; gap: 8px;
+  font-weight: 300; line-height: 1.5;
+}
+.price-list li::before { content: ''; width: 3px; height: 3px; border-radius: 50%; background: var(--t3); flex-shrink: 0; margin-top: 6px; }
+@media (hover: hover) and (pointer: fine) { .price-card:hover { background: var(--sf2); } }
+@media (max-width: 768px) {
+  .price-grid { grid-template-columns: 1fr; }
+  .price-card { padding: 20px 18px; }
+}
 
-/* ═══════════════════════════════
-   PRICES 3-col → 1-col mobile
-   ═══════════════════════════════ */
-.pg{display:grid;grid-template-columns:repeat(3,1fr);gap:1px;background:var(--bd);border-radius:12px;overflow:hidden}
-.pc{background:var(--sf);padding:clamp(24px,4vw,44px) clamp(18px,3vw,28px);position:relative;transition:background 0.3s var(--eo)}
-.pc.hi{background:var(--sf2)}
-.pc.hi::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:var(--ac2);opacity:0.6}
-.pc.hi .pt{color:var(--ac2)}
-.pt{font-size:9px;letter-spacing:0.2em;text-transform:uppercase;color:var(--t4);margin-bottom:12px;transition:color 0.3s var(--eo)}
-.pv{font-size:clamp(20px,3vw,28px);font-weight:700;color:var(--t1);margin-bottom:4px}.pv span{font-size:clamp(10px,1.1vw,12px);font-weight:300;color:var(--t3)}
-.pn{font-size:10px;color:var(--t4);margin-bottom:18px}
-.pl{list-style:none;display:flex;flex-direction:column;gap:9px}
-.pl li{font-size:clamp(10px,1vw,11px);color:var(--t2);display:flex;align-items:flex-start;gap:8px;font-weight:300;line-height:1.5}
-.pl li::before{content:'';width:3px;height:3px;border-radius:50%;background:var(--t3);flex-shrink:0;margin-top:6px}
-@media(hover:hover)and(pointer:fine){.pc:hover{background:var(--sf2)}}
-@media(max-width:768px){.pg{grid-template-columns:1fr}.pc{padding:20px 18px}}
-
-/* ═══════════════════════════════
+/* ═══════════════════════════
    CTA
-   ═══════════════════════════════ */
-.cta-sc{padding:clamp(80px,14vw,160px) 0;text-align:center;display:flex;flex-direction:column;align-items:center;border-top:1px solid var(--bd)}
-.cta-sc h2{font-family:var(--s);font-style:italic;font-weight:400;font-size:clamp(2rem,4.5vw,3.6rem);line-height:1.05;letter-spacing:-0.01em;margin:clamp(10px,2vw,16px) 0 clamp(14px,3vw,20px)}
-.cta-sc p{font-size:clamp(11px,1.2vw,12.5px);color:var(--t2);max-width:380px;margin-bottom:clamp(24px,5vw,36px);line-height:1.8;font-weight:300}
+   ═══════════════════════════ */
+.cta {
+  padding: clamp(56px, 10vw, 120px) 0;
+  text-align: center; display: flex; flex-direction: column; align-items: center;
+  border-top: 1px solid var(--bd);
+}
+.cta h2 {
+  font-family: var(--serif); font-style: italic; font-weight: 400;
+  font-size: clamp(1.8rem, 4.5vw, 3.2rem); line-height: 1.1;
+  margin: 10px 0 16px;
+}
+.cta p {
+  font-size: clamp(11px, 1.2vw, 12.5px); color: var(--t2);
+  max-width: 380px; margin-bottom: 28px; line-height: 1.8; font-weight: 300;
+}
 
-/* ═══════════════════════════════
+/* ═══════════════════════════
    FOOTER
-   ═══════════════════════════════ */
-footer{padding:clamp(28px,5vw,40px) 0;border-top:1px solid var(--bd)}
-.ftr{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px}
-.fc{font-size:9px;color:var(--t4);letter-spacing:0.08em}
-.fla{display:flex;gap:20px}
-.fla a{font-size:9px;color:var(--t4);letter-spacing:0.1em;text-transform:uppercase;transition:color 0.25s var(--eo)}
-@media(hover:hover)and(pointer:fine){.fla a:hover{color:var(--t2)}}
-@media(max-width:480px){.ftr{flex-direction:column;text-align:center}}
+   ═══════════════════════════ */
+footer { padding: 32px 0; border-top: 1px solid var(--bd); }
+.footer-inner { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px; }
+.footer-copy { font-size: 9px; color: var(--t4); letter-spacing: 0.08em; }
+.footer-links { display: flex; gap: 20px; }
+.footer-links a { font-size: 9px; color: var(--t4); letter-spacing: 0.1em; text-transform: uppercase; transition: color 0.25s var(--eo); }
+@media (hover: hover) and (pointer: fine) { .footer-links a:hover { color: var(--t2); } }
+@media (max-width: 480px) { .footer-inner { flex-direction: column; text-align: center; } }
 
-/* ═══════════════════════════════
+/* ═══════════════════════════
    SCROLL REVEALS
-   ═══════════════════════════════ */
-.rv{opacity:0;transform:translateY(24px);transition:opacity 0.65s var(--eo),transform 0.65s var(--eo)}
-.rv.v{opacity:1;transform:translateY(0)}
-.rv-right{opacity:0;transform:translateX(40px);transition:opacity 0.7s var(--eo),transform 0.7s var(--eo)}
-.rv-right.v{opacity:1;transform:translateX(0)}
+   ═══════════════════════════ */
+.rv { opacity: 0; transform: translateY(20px); transition: opacity 0.6s var(--eo), transform 0.6s var(--eo); }
+.rv.v { opacity: 1; transform: translateY(0); }
 
-/* Stagger grid children */
-.rvs .fi,.rvs .ai2,.rvs .pc{opacity:0;transform:translateY(14px);transition:opacity 0.45s var(--eo),transform 0.45s var(--eo)}
-.rvs.v .fi,.rvs.v .ai2,.rvs.v .pc{opacity:1;transform:translateY(0)}
-.rvs.v *:nth-child(1){transition-delay:0s}
-.rvs.v *:nth-child(2){transition-delay:50ms}
-.rvs.v *:nth-child(3){transition-delay:100ms}
-.rvs.v *:nth-child(4){transition-delay:150ms}
+/* Hero entrance */
+.he { opacity: 0; transform: translateY(20px); transition: opacity 0.6s var(--eo), transform 0.6s var(--eo); }
+.he.in { opacity: 1; transform: translateY(0); }
+
+/* Stagger */
+.rvs .flow-step, .rvs .arch-card, .rvs .price-card {
+  opacity: 0; transform: translateY(12px);
+  transition: opacity 0.4s var(--eo), transform 0.4s var(--eo);
+}
+.rvs.v .flow-step, .rvs.v .arch-card, .rvs.v .price-card { opacity: 1; transform: translateY(0); }
+.rvs.v *:nth-child(1) { transition-delay: 0s; }
+.rvs.v *:nth-child(2) { transition-delay: 50ms; }
+.rvs.v *:nth-child(3) { transition-delay: 100ms; }
+.rvs.v *:nth-child(4) { transition-delay: 150ms; }
+
+/* Clip reveal for code */
+.rv-clip { clip-path: inset(0 0 100% 0); transition: clip-path 0.7s var(--eio); }
+.rv-clip.v { clip-path: inset(0 0 0 0); }
 
 /* Reduced motion */
-@media(prefers-reduced-motion:reduce){
-  .rv,.rv-right,.rv-clip,.rvs .fi,.rvs .ai2,.rvs .pc,.hero .he{
-    opacity:1;transform:none;clip-path:none;transition:none;animation:none;
+@media (prefers-reduced-motion: reduce) {
+  .rv, .he, .rvs .flow-step, .rvs .arch-card, .rvs .price-card, .rv-clip {
+    opacity: 1 !important; transform: none !important; clip-path: none !important;
+    transition: none !important; animation: none !important;
   }
-  .pu{animation:none}
+  .dot { animation: none !important; }
 }
 
 /* Touch targets */
-@media(pointer:coarse){.bp,.bs{min-height:44px}.mo a{padding:10px 0;min-height:44px;display:flex;align-items:center}}
+@media (pointer: coarse) {
+  .btn-primary, .btn-ghost { min-height: 44px; }
+  .mob-nav a { padding: 10px 0; min-height: 44px; display: flex; align-items: center; }
+}
 
 /* Safe areas */
-@supports(padding:env(safe-area-inset-top)){
-  nav{padding-top:calc(clamp(12px,2vw,20px) + env(safe-area-inset-top))}
-  footer{padding-bottom:calc(clamp(28px,5vw,40px) + env(safe-area-inset-bottom))}
+@supports (padding: env(safe-area-inset-top)) {
+  nav { padding-top: calc(12px + env(safe-area-inset-top)); }
+  footer { padding-bottom: calc(32px + env(safe-area-inset-bottom)); }
 }
 </style>
 </head>
@@ -244,165 +397,156 @@ footer{padding:clamp(28px,5vw,40px) 0;border-top:1px solid var(--bd)}
 
 <a href="#main" class="skip">Skip to content</a>
 
-<!-- NAV — section links only, no GitHub/Docs/X -->
 <nav aria-label="Primary"><div class="np">
-  <a href="/" class="lg" aria-label="SENTRY home">SENTRY <span>/ sol</span></a>
-  <div class="ni">
+  <a href="/" class="logo" aria-label="SENTRY home">SENTRY <span>/ sol</span></a>
+  <div class="nav-links">
     <a href="#protocol">Protocol</a>
     <a href="#architecture">Architecture</a>
     <a href="#api">API</a>
     <a href="#pricing">Pricing</a>
   </div>
-  <button type="button" class="hb" id="ham" aria-label="Menu" aria-expanded="false"><span></span><span></span><span></span></button>
+  <button type="button" class="ham" id="hamBtn" aria-label="Menu" aria-expanded="false"><span></span><span></span><span></span></button>
 </div></nav>
 
-<!-- Mobile overlay — section links only -->
-<div class="mo" id="mob" role="dialog" aria-label="Navigation">
-  <a href="#protocol" onclick="cn()">Protocol</a>
-  <a href="#architecture" onclick="cn()">Architecture</a>
-  <a href="#api" onclick="cn()">API</a>
-  <a href="#pricing" onclick="cn()">Pricing</a>
+<div class="mob-nav" id="mobNav" role="dialog" aria-label="Navigation">
+  <a href="#protocol">Protocol</a>
+  <a href="#architecture">Architecture</a>
+  <a href="#api">API</a>
+  <a href="#pricing">Pricing</a>
 </div>
 
 <main id="main">
 
-  <!-- HERO -->
   <section class="hero ct" aria-label="Hero">
-    <div class="tg he"><span class="pu"></span> Frontier Hackathon</div>
+    <div class="tag he"><span class="dot"></span> Frontier Hackathon</div>
     <h1 class="he">Autonomous<br><em>KOL signal</em><br>intelligence</h1>
-    <p class="hero-p he">Sentry watches 500+ KOL wallets on Solana, scores conviction using on-chain behavior, and exposes verified signals as x402-gated endpoints. The first agent-to-agent signal marketplace.</p>
-    <div class="ha he">
-      <a href="https://github.com/brandononchain/sentry-protocol" target="_blank" rel="noopener" class="bp">Start Building <span class="ic" aria-hidden="true">&#8599;</span></a>
-      <a href="#api" class="bs">View API</a>
+    <p class="hero-sub he">Sentry watches 500+ KOL wallets on Solana, scores conviction using on-chain behavior, and exposes verified signals as x402-gated endpoints. The first agent-to-agent signal marketplace.</p>
+    <div class="actions he">
+      <a href="https://github.com/brandononchain/sentry-protocol" target="_blank" rel="noopener" class="btn-primary">Start Building <span class="arrow" aria-hidden="true">&#8599;</span></a>
+      <a href="#api" class="btn-ghost">View API</a>
     </div>
-    <div class="ms he">
-      <div class="mt"><div class="mv">512</div><div class="ml">KOL Wallets</div></div>
-      <div class="mt"><div class="mv">$0.001</div><div class="ml">Per Signal</div></div>
-      <div class="mt"><div class="mv">&lt;400ms</div><div class="ml">Latency</div></div>
-      <div class="mt"><div class="mv">24/7</div><div class="ml">Autonomous</div></div>
+    <div class="metrics he">
+      <div class="metric-cell"><div class="metric-val">512</div><div class="metric-label">KOL Wallets</div></div>
+      <div class="metric-cell"><div class="metric-val">$0.001</div><div class="metric-label">Per Signal</div></div>
+      <div class="metric-cell"><div class="metric-val">&lt;400ms</div><div class="metric-label">Latency</div></div>
+      <div class="metric-cell"><div class="metric-val">24/7</div><div class="metric-label">Autonomous</div></div>
     </div>
   </section>
 
-  <!-- LIVE FEED -->
-  <div class="fw ct">
-    <div class="fd rv-right">
-      <div class="ft2"><h2>Live Signal Feed</h2><span>MAINNET-BETA</span></div>
-      <div class="fb" id="feedRows">
-        <div class="fr"><span class="fk">@ansem</span><span class="ftk">POPCAT / SOL</span><span class="fa fab">BUY</span><span class="fsc">94</span><span class="ftm">2s</span></div>
-        <div class="fr"><span class="fk">@hsaka</span><span class="ftk">WIF / USDC</span><span class="fa fab">BUY</span><span class="fsc">87</span><span class="ftm">14s</span></div>
-        <div class="fr"><span class="fk">@degenking</span><span class="ftk">BONK / SOL</span><span class="fa fas">SELL</span><span class="fsc">72</span><span class="ftm">31s</span></div>
-        <div class="fr"><span class="fk">@blknoiz06</span><span class="ftk">JUP / USDC</span><span class="fa fab">BUY</span><span class="fsc">91</span><span class="ftm">48s</span></div>
-        <div class="fr"><span class="fk">@cryptowiz</span><span class="ftk">RENDER / SOL</span><span class="fa fab">BUY</span><span class="fsc">83</span><span class="ftm">1m</span></div>
-        <div class="fr"><span class="fk">@maboroshi</span><span class="ftk">PYTH / USDC</span><span class="fa fas">SELL</span><span class="fsc">68</span><span class="ftm">2m</span></div>
+  <div class="feed-wrap ct">
+    <div class="feed rv">
+      <div class="feed-header"><h2>Live Signal Feed</h2><span>MAINNET-BETA</span></div>
+      <div class="feed-body" id="feedRows">
+        <div class="feed-row"><span class="feed-kol">@ansem</span><span class="feed-tok">POPCAT / SOL</span><span class="feed-act feed-buy">BUY</span><span class="feed-score">94</span></div>
+        <div class="feed-row"><span class="feed-kol">@hsaka</span><span class="feed-tok">WIF / USDC</span><span class="feed-act feed-buy">BUY</span><span class="feed-score">87</span></div>
+        <div class="feed-row"><span class="feed-kol">@degenking</span><span class="feed-tok">BONK / SOL</span><span class="feed-act feed-sell">SELL</span><span class="feed-score">72</span></div>
+        <div class="feed-row"><span class="feed-kol">@blknoiz06</span><span class="feed-tok">JUP / USDC</span><span class="feed-act feed-buy">BUY</span><span class="feed-score">91</span></div>
+        <div class="feed-row"><span class="feed-kol">@cryptowiz</span><span class="feed-tok">RENDER / SOL</span><span class="feed-act feed-buy">BUY</span><span class="feed-score">83</span></div>
+        <div class="feed-row"><span class="feed-kol">@maboroshi</span><span class="feed-tok">PYTH / USDC</span><span class="feed-act feed-sell">SELL</span><span class="feed-score">68</span></div>
       </div>
     </div>
   </div>
 
-  <!-- PROTOCOL -->
-  <section id="protocol" class="sc ct" aria-label="Protocol">
-    <div class="sh rv">
-      <div class="tg">Protocol</div>
+  <section id="protocol" class="section ct" aria-label="Protocol">
+    <div class="section-head rv">
+      <div class="tag">Protocol</div>
       <h2>Signal. Score. Serve.</h2>
       <p>Three phases, zero human intervention. Raw wallet activity becomes tradeable intelligence for autonomous agents.</p>
     </div>
-    <div class="fl rvs rv">
-      <article class="fi"><div class="fn2" aria-hidden="true">01</div><h3>Ingest</h3><p>Subscribes to 512 KOL wallets via Helius WebSocket. Every swap on Jupiter, Raydium, and Meteora captured within 400ms of block confirmation.</p></article>
-      <article class="fi"><div class="fn2" aria-hidden="true">02</div><h3>Score</h3><p>Five on-chain metrics: position size, hold duration, historical PnL, rug avoidance, multi-wallet consensus. Output: 0-100 conviction score.</p></article>
-      <article class="fi"><div class="fn2" aria-hidden="true">03</div><h3>Serve</h3><p>Scored signals exposed via x402-gated HTTP endpoints. $0.001 per signal in USDC. No API keys. No subscriptions. Sign and fetch.</p></article>
+    <div class="flow-grid rvs rv">
+      <article class="flow-step"><div class="flow-num" aria-hidden="true">01</div><h3>Ingest</h3><p>Subscribes to 512 KOL wallets via Helius WebSocket. Every swap on Jupiter, Raydium, and Meteora captured within 400ms of block confirmation.</p></article>
+      <article class="flow-step"><div class="flow-num" aria-hidden="true">02</div><h3>Score</h3><p>Five on-chain metrics: position size, hold duration, historical PnL, rug avoidance, multi-wallet consensus. Output: 0-100 conviction score.</p></article>
+      <article class="flow-step"><div class="flow-num" aria-hidden="true">03</div><h3>Serve</h3><p>Scored signals exposed via x402-gated HTTP endpoints. $0.001 per signal in USDC. No API keys. No subscriptions. Sign and fetch.</p></article>
     </div>
   </section>
 
-  <!-- ARCHITECTURE -->
-  <section id="architecture" class="sc ct" aria-label="Architecture">
-    <div class="sh rv">
-      <div class="tg">Architecture</div>
+  <section id="architecture" class="section ct" aria-label="Architecture">
+    <div class="section-head rv">
+      <div class="tag">Architecture</div>
       <h2>Built for agents, not dashboards</h2>
       <p>Every decision optimizes for machine consumption. Agents are first-class citizens.</p>
     </div>
-    <div class="ag rvs rv">
-      <article class="ai2"><div class="aico" aria-hidden="true">&#9881;</div><h3>Helius Geyser</h3><p>Real-time WebSocket subscriptions on 512 wallets. Enhanced transaction parsing. Sub-second latency from block to signal.</p></article>
-      <article class="ai2"><div class="aico" aria-hidden="true">&#9733;</div><h3>Conviction Engine</h3><p>Five-factor model. Position sizing 40%, hold history 20%, PnL 15%, rug avoidance 15%, consensus 10%. In-memory, deterministic.</p></article>
-      <article class="ai2"><div class="aico" aria-hidden="true">&#9889;</div><h3>x402 Payment</h3><p>HTTP 402 with USDC terms. Coinbase facilitator settles on-chain. Stateless. No sessions. No API keys. Pure pay-per-request.</p></article>
-      <article class="ai2"><div class="aico" aria-hidden="true">&#9878;</div><h3>Agent Kit Plugin</h3><p>Native plugin for SendAI's Solana Agent Kit. Any LangChain or Vercel AI SDK agent consumes signals with one import.</p></article>
+    <div class="arch-grid rvs rv">
+      <article class="arch-card"><div class="arch-icon" aria-hidden="true">&#9881;</div><h3>Helius Geyser</h3><p>Real-time WebSocket subscriptions on 512 wallets. Enhanced transaction parsing. Sub-second latency from block to signal.</p></article>
+      <article class="arch-card"><div class="arch-icon" aria-hidden="true">&#9733;</div><h3>Conviction Engine</h3><p>Five-factor model. Position sizing 40%, hold history 20%, PnL 15%, rug avoidance 15%, consensus 10%. In-memory, deterministic.</p></article>
+      <article class="arch-card"><div class="arch-icon" aria-hidden="true">&#9889;</div><h3>x402 Payment</h3><p>HTTP 402 with USDC terms. Coinbase facilitator settles on-chain. Stateless. No sessions. No API keys.</p></article>
+      <article class="arch-card"><div class="arch-icon" aria-hidden="true">&#9878;</div><h3>Agent Kit Plugin</h3><p>Native plugin for SendAI's Solana Agent Kit. Any LangChain or Vercel AI SDK agent consumes signals with one import.</p></article>
     </div>
   </section>
 
-  <!-- API -->
-  <section id="api" class="sc ct" aria-label="API">
-    <div class="sh rv">
-      <div class="tg">Developer Experience</div>
+  <section id="api" class="section ct" aria-label="API">
+    <div class="section-head rv">
+      <div class="tag">Developer Experience</div>
       <h2>One request. One micropayment.</h2>
     </div>
-    <div class="cw rv-clip">
-      <div class="cb"><div class="cd"><i></i><i></i><i></i></div><span class="cn">consume-signal.ts</span></div>
-      <div class="cc"><pre><span class="c">// No API key. No account. Just USDC.</span>
+    <div class="code-wrap rv-clip">
+      <div class="code-bar"><div class="code-dots"><i></i><i></i><i></i></div><span class="code-filename">consume-signal.ts</span></div>
+      <div class="code-body"><pre><span class="cmt">// No API key. No account. Just USDC.</span>
 
-<span class="k">import</span> { <span class="f">SolanaAgentKit</span> } <span class="k">from</span> <span class="s">"solana-agent-kit"</span>;
-<span class="k">import</span> { <span class="f">SentryPlugin</span> } <span class="k">from</span> <span class="s">"@sentry/agent-kit"</span>;
+<span class="kw">import</span> { <span class="fn">SolanaAgentKit</span> } <span class="kw">from</span> <span class="str">"solana-agent-kit"</span>;
+<span class="kw">import</span> { <span class="fn">SentryPlugin</span> } <span class="kw">from</span> <span class="str">"@sentry/agent-kit"</span>;
 
-<span class="k">const</span> agent = <span class="k">new</span> <span class="f">SolanaAgentKit</span>(wallet, rpc)
-  .<span class="f">use</span>(<span class="f">SentryPlugin</span>);
+<span class="kw">const</span> agent = <span class="kw">new</span> <span class="fn">SolanaAgentKit</span>(wallet, rpc)
+  .<span class="fn">use</span>(<span class="fn">SentryPlugin</span>);
 
-<span class="k">const</span> signals = <span class="k">await</span> agent.<span class="f">getSentrySignals</span>({
-  minConviction: <span class="n">80</span>,
-  maxAge: <span class="n">60</span>,
+<span class="kw">const</span> signals = <span class="kw">await</span> agent.<span class="fn">getSentrySignals</span>({
+  minConviction: <span class="num">80</span>,
+  maxAge: <span class="num">60</span>,
 });
 
-<span class="k">for</span> (<span class="k">const</span> s <span class="k">of</span> signals) {
-  <span class="k">if</span> (s.score &gt; <span class="n">90</span>) {
-    <span class="k">await</span> agent.<span class="f">trade</span>(s.tokenMint, s.size);
+<span class="kw">for</span> (<span class="kw">const</span> s <span class="kw">of</span> signals) {
+  <span class="kw">if</span> (s.score &gt; <span class="num">90</span>) {
+    <span class="kw">await</span> agent.<span class="fn">trade</span>(s.tokenMint, s.size);
   }
 }</pre></div>
     </div>
   </section>
 
-  <!-- PRICING -->
-  <section id="pricing" class="sc ct" aria-label="Pricing">
-    <div class="sh rv">
-      <div class="tg">Signal Tiers</div>
+  <section id="pricing" class="section ct" aria-label="Pricing">
+    <div class="section-head rv">
+      <div class="tag">Signal Tiers</div>
       <h2>Pay for what you consume</h2>
       <p>No subscriptions. Usage-based pricing via x402 micropayments in USDC on Solana.</p>
     </div>
-    <div class="pg rvs rv">
-      <article class="pc">
-        <div class="pt">Signal Stream</div>
-        <div class="pv">$0.001 <span>/ signal</span></div>
-        <div class="pn">pay-per-request via x402</div>
-        <ul class="pl"><li>All 512 KOL wallets</li><li>Real-time conviction scores</li><li>Token metadata</li><li>60s signal history</li><li>Agent Kit plugin</li></ul>
+    <div class="price-grid rvs rv">
+      <article class="price-card">
+        <div class="price-tier">Signal Stream</div>
+        <div class="price-amount">$0.001 <span>/ signal</span></div>
+        <div class="price-note">pay-per-request via x402</div>
+        <ul class="price-list"><li>All 512 KOL wallets</li><li>Real-time conviction scores</li><li>Token metadata</li><li>60s signal history</li><li>Agent Kit plugin</li></ul>
       </article>
-      <article class="pc hi">
-        <div class="pt">Consensus Feed</div>
-        <div class="pv">$0.005 <span>/ signal</span></div>
-        <div class="pn">multi-KOL convergence</div>
-        <ul class="pl"><li>Everything in Stream</li><li>Multi-wallet consensus</li><li>Historical KOL performance</li><li>Position sizing</li><li>WebSocket streaming</li></ul>
+      <article class="price-card featured">
+        <div class="price-tier">Consensus Feed</div>
+        <div class="price-amount">$0.005 <span>/ signal</span></div>
+        <div class="price-note">multi-KOL convergence</div>
+        <ul class="price-list"><li>Everything in Stream</li><li>Multi-wallet consensus</li><li>Historical KOL performance</li><li>Position sizing</li><li>WebSocket streaming</li></ul>
       </article>
-      <article class="pc">
-        <div class="pt">Execution Bundle</div>
-        <div class="pv">$0.01 <span>/ bundle</span></div>
-        <div class="pn">signal + auto-execute</div>
-        <ul class="pl"><li>Everything in Consensus</li><li>Pre-built swap txns</li><li>Jupiter routing</li><li>Slippage protection</li><li>Priority fee estimation</li></ul>
+      <article class="price-card">
+        <div class="price-tier">Execution Bundle</div>
+        <div class="price-amount">$0.01 <span>/ bundle</span></div>
+        <div class="price-note">signal + auto-execute</div>
+        <ul class="price-list"><li>Everything in Consensus</li><li>Pre-built swap txns</li><li>Jupiter routing</li><li>Slippage protection</li><li>Priority fee estimation</li></ul>
       </article>
     </div>
   </section>
 
-  <!-- CTA -->
-  <section class="cta-sc ct" aria-label="Call to action">
+  <section class="cta ct" aria-label="Call to action">
     <div class="rv">
-      <div class="tg"><span class="pu"></span> Shipping Now</div>
+      <div class="tag"><span class="dot"></span> Shipping Now</div>
       <h2>Build on signal,<br>not noise</h2>
       <p>Open source. Live on devnet. Start building the next generation of autonomous trading agents.</p>
-      <div class="ha ha-c">
-        <a href="https://github.com/brandononchain/sentry-protocol" target="_blank" rel="noopener" class="bp">GitHub <span class="ic" aria-hidden="true">&#8599;</span></a>
-        <a href="#" class="bs">Discord</a>
+      <div class="actions actions-center">
+        <a href="https://github.com/brandononchain/sentry-protocol" target="_blank" rel="noopener" class="btn-primary">GitHub <span class="arrow" aria-hidden="true">&#8599;</span></a>
+        <a href="#" class="btn-ghost">Discord</a>
       </div>
     </div>
   </section>
 
 </main>
 
-<footer><div class="ct ftr">
-  <span class="fc">SENTRY PROTOCOL &copy; 2026 / FRONTIER HACKATHON</span>
-  <nav class="fla" aria-label="Footer">
+<footer><div class="ct footer-inner">
+  <span class="footer-copy">SENTRY PROTOCOL &copy; 2026 / FRONTIER HACKATHON</span>
+  <nav class="footer-links" aria-label="Footer">
     <a href="https://github.com/brandononchain/sentry-protocol" target="_blank" rel="noopener">GitHub</a>
     <a href="#">Docs</a>
     <a href="https://x.com/brandononchain" target="_blank" rel="noopener">X</a>
@@ -410,81 +554,83 @@ footer{padding:clamp(28px,5vw,40px) 0;border-top:1px solid var(--bd)}
 </div></footer>
 
 <script>
-/* Nav toggle */
-var ham = document.getElementById("ham");
-var mob = document.getElementById("mob");
-ham.addEventListener("click", function() {
-  var open = ham.classList.toggle("on");
-  mob.classList.toggle("on");
-  ham.setAttribute("aria-expanded", open ? "true" : "false");
-  document.body.style.overflow = open ? "hidden" : "";
-});
-function cn() {
-  ham.classList.remove("on");
-  mob.classList.remove("on");
-  ham.setAttribute("aria-expanded", "false");
-  document.body.style.overflow = "";
+/* Nav */
+var hamBtn = document.getElementById("hamBtn");
+var mobNav = document.getElementById("mobNav");
+if (hamBtn && mobNav) {
+  hamBtn.addEventListener("click", function() {
+    var isOpen = hamBtn.classList.toggle("on");
+    mobNav.classList.toggle("on");
+    hamBtn.setAttribute("aria-expanded", isOpen ? "true" : "false");
+    document.body.style.overflow = isOpen ? "hidden" : "";
+  });
+  var mobLinks = mobNav.querySelectorAll("a");
+  for (var i = 0; i < mobLinks.length; i++) {
+    mobLinks[i].addEventListener("click", function() {
+      hamBtn.classList.remove("on");
+      mobNav.classList.remove("on");
+      hamBtn.setAttribute("aria-expanded", "false");
+      document.body.style.overflow = "";
+    });
+  }
 }
 
-/* Hero cascade on load */
+/* Hero cascade */
 var heroEls = document.querySelectorAll(".hero .he");
-var reducedMotion = false;
-try { reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches; } catch(e) {}
-if (reducedMotion) {
-  for (var i = 0; i < heroEls.length; i++) heroEls[i].classList.add("in");
-} else {
-  for (var i = 0; i < heroEls.length; i++) {
-    (function(el, delay) {
-      setTimeout(function() { el.classList.add("in"); }, delay);
-    })(heroEls[i], 120 + i * 110);
+var reduce = false;
+try { reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches; } catch(e) {}
+for (var j = 0; j < heroEls.length; j++) {
+  if (reduce) {
+    heroEls[j].classList.add("in");
+  } else {
+    (function(el, d) { setTimeout(function() { el.classList.add("in"); }, d); })(heroEls[j], 100 + j * 100);
   }
 }
 
 /* Scroll reveals */
 if ("IntersectionObserver" in window) {
-  var io = new IntersectionObserver(function(entries) {
-    for (var i = 0; i < entries.length; i++) {
-      if (entries[i].isIntersecting) {
-        entries[i].target.classList.add("v");
-        io.unobserve(entries[i].target);
+  var observer = new IntersectionObserver(function(entries) {
+    for (var k = 0; k < entries.length; k++) {
+      if (entries[k].isIntersecting) {
+        entries[k].target.classList.add("v");
+        observer.unobserve(entries[k].target);
       }
     }
-  }, { threshold: 0.06, rootMargin: "0px 0px -32px 0px" });
-  var revealEls = document.querySelectorAll(".rv,.rv-right,.rv-clip");
-  for (var i = 0; i < revealEls.length; i++) io.observe(revealEls[i]);
+  }, { threshold: 0.05, rootMargin: "0px 0px -24px 0px" });
+  var targets = document.querySelectorAll(".rv, .rv-clip");
+  for (var k = 0; k < targets.length; k++) observer.observe(targets[k]);
 } else {
-  /* Fallback: show everything */
-  var all = document.querySelectorAll(".rv,.rv-right,.rv-clip");
-  for (var i = 0; i < all.length; i++) all[i].classList.add("v");
+  var fallback = document.querySelectorAll(".rv, .rv-clip");
+  for (var k = 0; k < fallback.length; k++) fallback[k].classList.add("v");
 }
 
 /* Live feed */
-var K = ["@ansem","@hsaka","@blknoiz06","@degenking","@cryptowiz","@maboroshi","@trader_xy","@soljakey","@moondev","@0xSun"];
-var T = ["POPCAT/SOL","WIF/USDC","BONK/SOL","JUP/USDC","RENDER/SOL","PYTH/USDC","RAY/SOL","ORCA/USDC","DRIFT/SOL","JTO/USDC"];
-var A = ["BUY","BUY","BUY","SELL","BUY"];
-function tk() {
-  var f = document.getElementById("feedRows");
-  if (!f) return;
-  var k = K[Math.floor(Math.random() * K.length)];
-  var t = T[Math.floor(Math.random() * T.length)];
-  var a = A[Math.floor(Math.random() * A.length)];
-  var sc = 70 + Math.floor(Math.random() * 30);
-  var r = document.createElement("div");
-  r.className = "fr";
-  r.innerHTML = '<span class="fk">' + k + '</span><span class="ftk">' + t + '</span><span class="fa ' + (a === "BUY" ? "fab" : "fas") + '">' + a + '</span><span class="fsc">' + sc + '</span><span class="ftm">now</span>';
-  r.style.opacity = "0";
-  r.style.transform = "translateX(12px)";
-  f.insertBefore(r, f.firstChild);
+var KOLS = ["@ansem","@hsaka","@blknoiz06","@degenking","@cryptowiz","@maboroshi","@trader_xy","@soljakey","@moondev","@0xSun"];
+var TOKENS = ["POPCAT/SOL","WIF/USDC","BONK/SOL","JUP/USDC","RENDER/SOL","PYTH/USDC","RAY/SOL","ORCA/USDC","DRIFT/SOL","JTO/USDC"];
+var SIDES = ["BUY","BUY","BUY","SELL","BUY"];
+function addRow() {
+  var feed = document.getElementById("feedRows");
+  if (!feed) return;
+  var kol = KOLS[Math.floor(Math.random() * KOLS.length)];
+  var tok = TOKENS[Math.floor(Math.random() * TOKENS.length)];
+  var side = SIDES[Math.floor(Math.random() * SIDES.length)];
+  var score = 70 + Math.floor(Math.random() * 30);
+  var row = document.createElement("div");
+  row.className = "feed-row";
+  row.innerHTML = '<span class="feed-kol">' + kol + '</span><span class="feed-tok">' + tok + '</span><span class="feed-act ' + (side === "BUY" ? "feed-buy" : "feed-sell") + '">' + side + '</span><span class="feed-score">' + score + '</span>';
+  row.style.opacity = "0";
+  row.style.transform = "translateY(8px)";
+  feed.insertBefore(row, feed.firstChild);
   setTimeout(function() {
-    r.style.transition = "opacity 0.4s cubic-bezier(0.23,1,0.32,1), transform 0.4s cubic-bezier(0.23,1,0.32,1)";
-    r.style.opacity = "1";
-    r.style.transform = "translateX(0)";
+    row.style.transition = "opacity 0.35s cubic-bezier(0.23,1,0.32,1), transform 0.35s cubic-bezier(0.23,1,0.32,1)";
+    row.style.opacity = "1";
+    row.style.transform = "translateY(0)";
   }, 16);
-  while (f.children.length > 8) {
-    f.removeChild(f.lastChild);
+  while (feed.children.length > 7) {
+    feed.removeChild(feed.lastChild);
   }
 }
-setInterval(tk, 4200);
+setInterval(addRow, 4000);
 </script>
 </body>
 </html>
