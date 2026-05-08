@@ -1,0 +1,16 @@
+User-agent: *
+Allow: /
+Sitemap: https://sentry-protocol.xyz/sitemap.xml
+
+# Allow AI crawlers to index for citation
+User-agent: GPTBot
+Allow: /
+
+User-agent: ClaudeBot
+Allow: /
+
+User-agent: PerplexityBot
+Allow: /
+
+User-agent: Google-Extended
+Allow: /
