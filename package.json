@@ -1,7 +1,7 @@
 {
-  "name": "sentry-protocol",
+  "name": "sentric",
   "version": "0.1.0",
-  "description": "Agent-native KOL signal intelligence on Solana via x402 micropayments",
+  "description": "The Bloomberg Terminal for Solana agents",
   "main": "dist/index.js",
   "scripts": {
     "build": "tsc",

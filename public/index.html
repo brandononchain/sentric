@@ -3,13 +3,13 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-<title>SENTRY — Bloomberg Terminal for Solana Agents</title>
+<title>Sentric — Bloomberg Terminal for Solana Agents</title>
 <meta name="description" content="One API call. The highest-conviction KOL trade in the last 60 seconds. $0.001 in USDC. No key, no account, no subscription.">
 <meta name="robots" content="index, follow">
-<link rel="canonical" href="https://sentry-protocol.xyz">
-<meta property="og:type" content="website"><meta property="og:url" content="https://sentry-protocol.xyz"><meta property="og:title" content="SENTRY — Bloomberg Terminal for Solana Agents"><meta property="og:description" content="One API call. The highest-conviction KOL trade in the last 60 seconds. $0.001 in USDC."><meta property="og:image" content="https://sentry-protocol.xyz/og-image.png"><meta property="og:image:width" content="1200"><meta property="og:image:height" content="630">
-<meta name="twitter:card" content="summary_large_image"><meta name="twitter:site" content="@brandononchain"><meta name="twitter:title" content="SENTRY — Bloomberg Terminal for Solana Agents"><meta name="twitter:description" content="Your agent knows what top KOLs just bought before their followers do."><meta name="twitter:image" content="https://sentry-protocol.xyz/og-image.png">
-<script type="application/ld+json">{"@context":"https://schema.org","@type":"SoftwareApplication","name":"SENTRY","applicationCategory":"FinanceApplication","url":"https://sentry-protocol.xyz","description":"Bloomberg Terminal for Solana Agents. One API call returns the highest-conviction KOL trade."}</script>
+<link rel="canonical" href="https://sentric.sh">
+<meta property="og:type" content="website"><meta property="og:url" content="https://sentric.sh"><meta property="og:title" content="Sentric — Bloomberg Terminal for Solana Agents"><meta property="og:description" content="One API call. The highest-conviction KOL trade in the last 60 seconds. $0.001 in USDC."><meta property="og:image" content="https://sentric.sh/og-image.png"><meta property="og:image:width" content="1200"><meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image"><meta name="twitter:site" content="@brandononchain"><meta name="twitter:title" content="Sentric — Bloomberg Terminal for Solana Agents"><meta name="twitter:description" content="Your agent knows what top KOLs just bought before their followers do."><meta name="twitter:image" content="https://sentric.sh/og-image.png">
+<script type="application/ld+json">{"@context":"https://schema.org","@type":"SoftwareApplication","name":"Sentric","applicationCategory":"FinanceApplication","url":"https://sentric.sh","description":"Bloomberg Terminal for Solana Agents. One API call returns the highest-conviction KOL trade."}</script>
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E%E2%97%88%3C/text%3E%3C/svg%3E">
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@300;400;500&family=DM+Serif+Display:ital@0;1&display=swap" rel="stylesheet">
@@ -160,7 +160,7 @@ footer{padding:28px 0;border-top:1px solid var(--line)}
 
 <header>
 <div class="nav-bar">
-  <a href="/" class="nav-logo">Sentry</a>
+  <a href="/" class="nav-logo">Sentric</a>
   <nav class="nav-mid" aria-label="Main">
     <a href="#how">How It Works</a>
     <a href="#api">API</a>
@@ -236,7 +236,7 @@ footer{padding:28px 0;border-top:1px solid var(--line)}
     <div class="endpoint-box reveal">
       <div class="endpoint-top"><span class="endpoint-method">GET /v1/signals</span><span class="endpoint-price">$0.001 USDC per call</span></div>
       <div class="endpoint-body"><pre><span class="cm">// Request</span>
-<span class="kw">const</span> res = <span class="kw">await</span> <span class="fn">fetch</span>(<span class="st">"https://sentry-protocol.xyz/v1/signals"</span>, {
+<span class="kw">const</span> res = <span class="kw">await</span> <span class="fn">fetch</span>(<span class="st">"https://sentric.sh/v1/signals"</span>, {
   headers: { <span class="st">"X-402-Payment"</span>: signedUsdcPayment }
 });
 
@@ -253,11 +253,11 @@ footer{padding:28px 0;border-top:1px solid var(--line)}
     </div>
 
     <div class="endpoint-box endpoint-gap reveal">
-      <div class="endpoint-top"><span class="endpoint-method">Agent Kit Plugin</span><span class="endpoint-price">npm install @sentry/agent-kit</span></div>
+      <div class="endpoint-top"><span class="endpoint-method">Agent Kit Plugin</span><span class="endpoint-price">npm install @sentric/agent-kit</span></div>
       <div class="endpoint-body"><pre><span class="cm">// Two lines to add KOL intelligence to any Solana agent</span>
-<span class="kw">import</span> { <span class="fn">SentryPlugin</span> } <span class="kw">from</span> <span class="st">"@sentry/agent-kit"</span>;
+<span class="kw">import</span> { <span class="fn">SentricPlugin</span> } <span class="kw">from</span> <span class="st">"@sentric/agent-kit"</span>;
 
-<span class="kw">const</span> agent = <span class="kw">new</span> <span class="fn">SolanaAgentKit</span>(wallet, rpc).<span class="fn">use</span>(<span class="fn">SentryPlugin</span>);
+<span class="kw">const</span> agent = <span class="kw">new</span> <span class="fn">SolanaAgentKit</span>(wallet, rpc).<span class="fn">use</span>(<span class="fn">SentricPlugin</span>);
 
 <span class="kw">const</span> signal = <span class="kw">await</span> agent.<span class="fn">getBestSignal</span>();
 <span class="kw">if</span> (signal.conviction &gt; <span class="nm">90</span>) {
@@ -297,7 +297,7 @@ footer{padding:28px 0;border-top:1px solid var(--line)}
 </main>
 
 <footer><div class="wrap foot">
-  <span class="foot-c">SENTRY &copy; 2026 / SOLANA FRONTIER HACKATHON</span>
+  <span class="foot-c">Sentric &copy; 2026 / SOLANA FRONTIER HACKATHON</span>
   <nav class="foot-l" aria-label="Footer">
     <a href="https://github.com/brandononchain/sentry-protocol" target="_blank" rel="noopener">GitHub</a>
     <a href="#">Docs</a>

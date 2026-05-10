@@ -1,10 +1,10 @@
-# SENTRY Protocol
+# Sentric
 
 **The Bloomberg Terminal for Solana agents.**
 
 Your agent knows what @ansem just bought before his followers do. One API call returns the highest-conviction KOL trade in the last 60 seconds. $0.001 in USDC. No key, no account.
 
-[Live site](https://sentry-protocol.vercel.app) · [Solana Frontier Hackathon 2026](https://colosseum.com/frontier)
+[Live site](https://sentric.sh) · [Solana Frontier Hackathon 2026](https://colosseum.com/frontier)
 
 ---
 
@@ -21,8 +21,8 @@ Your agent knows what @ansem just bought before his followers do. One API call r
 ## Quick start
 
 ```bash
-git clone https://github.com/brandononchain/sentry-protocol
-cd sentry-protocol
+git clone https://github.com/brandononchain/sentric
+cd sentric
 npm install
 cp .env.example .env
 ```
@@ -32,7 +32,7 @@ Edit `.env`:
 ```env
 HELIUS_API_KEY=your_key_here
 TREASURY_WALLET=your_solana_wallet_address
-SENTRY_DEV_MODE=true
+Sentric_DEV_MODE=true
 ```
 
 Run:
@@ -54,7 +54,7 @@ If you don't set `HELIUS_API_KEY`, the server still starts. Ingestion is disable
 
 ```bash
 # Start without Helius
-SENTRY_DEV_MODE=true npm run dev
+Sentric_DEV_MODE=true npm run dev
 
 # Test endpoints
 curl http://localhost:3000/              # Protocol info
@@ -79,11 +79,11 @@ HELIUS_WS_URL=wss://atlas-mainnet.helius-rpc.com/?api-key=your_helius_key
 
 ### Testing x402 payment flow
 
-With `SENTRY_DEV_MODE=true`, all paid endpoints are free. To test the actual 402 flow:
+With `Sentric_DEV_MODE=true`, all paid endpoints are free. To test the actual 402 flow:
 
 ```bash
 # Set dev mode OFF
-SENTRY_DEV_MODE=false npm run dev
+Sentric_DEV_MODE=false npm run dev
 
 # This returns 402 with payment terms
 curl http://localhost:3000/v1/signals
@@ -112,9 +112,9 @@ The current implementation targets **mainnet** wallet addresses and RPC endpoint
 
 1. Change `HELIUS_RPC_URL` to a devnet RPC
 2. Replace KOL wallet addresses in `src/config/kols.ts` with devnet wallets you control
-3. The USDC mint in config defaults to mainnet USDC — for devnet testing this doesn't matter since `SENTRY_DEV_MODE=true` skips payment verification entirely
+3. The USDC mint in config defaults to mainnet USDC — for devnet testing this doesn't matter since `Sentric_DEV_MODE=true` skips payment verification entirely
 
-For the hackathon demo, run with `SENTRY_DEV_MODE=true` on mainnet to watch real KOL trades without handling real payments.
+For the hackathon demo, run with `Sentric_DEV_MODE=true` on mainnet to watch real KOL trades without handling real payments.
 
 ---
 
@@ -205,7 +205,7 @@ if (signal.conviction > 90) {
 | `CONSENSUS_PRICE_USDC` | No | `0.005` | Price per consensus request |
 | `SIGNAL_TTL_SECONDS` | No | `300` | How long signals stay in memory |
 | `MAX_SIGNALS` | No | `10000` | Max signals in memory |
-| `SENTRY_DEV_MODE` | No | `false` | Bypass x402 payment verification |
+| `Sentric_DEV_MODE` | No | `false` | Bypass x402 payment verification |
 | `REDIS_URL` | No | — | Redis URL (falls back to in-memory) |
 
 ---

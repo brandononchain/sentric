@@ -5,6 +5,7 @@ import { KolStore } from "../config/kols";
 import { SignalStore } from "../store/signal-store";
 import { ScoringEngine } from "../scoring/engine";
 import { IngestionEngine } from "../ingestion/engine";
+import { KolAutoSourcer } from "../sourcing/auto-sourcer";
 import { x402PaymentGate, devModeBypass } from "./x402";
 import { SignalQuery, ConsensusQuery } from "../types";
 
@@ -31,7 +32,7 @@ export function createServer() {
 
   app.get("/", (_req: Request, res: Response) => {
     res.json({
-      name: "SENTRY Protocol",
+      name: "Sentric",
       version: "0.1.0",
       description:
         "Agent-native KOL signal intelligence on Solana via x402 micropayments",
@@ -258,6 +259,32 @@ export function createServer() {
   });
 
   // =========================================
+  // Manual KOL discovery trigger
+  // =========================================
+
+  const autoSourcer = new KolAutoSourcer(kolStore, `http://localhost:${config.port}`);
+
+  app.post("/v1/kols/discover", async (_req: Request, res: Response) => {
+    if (!config.heliusApiKey) {
+      res.status(503).json({ error: "no_helius_key", message: "Auto-sourcing requires HELIUS_API_KEY" });
+      return;
+    }
+
+    const before = kolStore.size();
+    const results = await autoSourcer.runOnce();
+    const after = kolStore.size();
+
+    res.json({
+      discovered: results.added + results.skipped + results.errors,
+      added: results.added,
+      skipped: results.skipped,
+      errors: results.errors,
+      totalBefore: before,
+      totalAfter: after,
+    });
+  });
+
+  // =========================================
   // Start ingestion when server starts
   // =========================================
 
@@ -265,8 +292,8 @@ export function createServer() {
     console.log(`
 ╔═══════════════════════════════════════════════════╗
 ║                                                   ║
-║   SENTRY Protocol v0.1.0                          ║
-║   Agent-Native KOL Signal Intelligence            ║
+║   Sentric v0.1.0                          ║
+║   The Bloomberg Terminal for Solana Agents            ║
 ║                                                   ║
 ║   Server:  http://${config.host}:${config.port}              ║
 ║   KOLs:    ${kolStore.size()} wallets tracked                 ║
@@ -290,9 +317,12 @@ export function createServer() {
       ingestionEngine.start().catch((err) => {
         console.error("[FATAL] Ingestion engine failed to start:", err);
       });
+
+      // Start auto-sourcing KOL wallets (every 6 hours)
+      autoSourcer.start(6 * 60 * 60 * 1000);
     } else {
       console.log(
-        "[INFO] No HELIUS_API_KEY — ingestion disabled. Signals can be submitted via POST /v1/signals/submit\n"
+        "[INFO] No HELIUS_API_KEY — ingestion and auto-sourcing disabled.\n"
       );
     }
   });

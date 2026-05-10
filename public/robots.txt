@@ -1,6 +1,6 @@
 User-agent: *
 Allow: /
-Sitemap: https://sentry-protocol.xyz/sitemap.xml
+Sitemap: https://sentric.sh/sitemap.xml
 
 # Allow AI crawlers to index for citation
 User-agent: GPTBot

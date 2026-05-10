@@ -1,5 +1,5 @@
 // ===================================================
-// SENTRY Protocol — Core Types
+// Sentric — Core Types
 // ===================================================
 
 export interface KolProfile {
@@ -145,6 +145,6 @@ export interface HeliusTransaction {
 export interface PaymentTerms {
   asset: string; // USDC mint on Solana
   amount: string; // in base units
-  recipient: string; // SENTRY treasury wallet
+  recipient: string; // Sentric treasury wallet
   network: string; // "solana:mainnet" or "solana:devnet"
 }
