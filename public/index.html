@@ -329,22 +329,20 @@ setInterval(feedTick,4000);
 function fetchKolCount(){
   var el=document.getElementById("kolCount");
   if(!el)return;
-  var apiBase=window.location.hostname==="sentry-protocol.vercel.app"
-    ?"https://sentry-protocol-production.up.railway.app"
-    :window.location.origin;
+  var apiBase="https://sentry-protocol-production.up.railway.app";
   try{
     var xhr=new XMLHttpRequest();
     xhr.open("GET",apiBase+"/v1/kols/count",true);
     xhr.timeout=5000;
     xhr.onload=function(){
       if(xhr.status===200){
-        try{var d=JSON.parse(xhr.responseText);if(d.count)el.textContent=d.count}catch(e){}
-      }
+        try{var d=JSON.parse(xhr.responseText);if(d.count)el.textContent=d.count}catch(e){el.textContent="58"}
+      }else{el.textContent="58"}
     };
-    xhr.onerror=function(){el.textContent="50+"};
-    xhr.ontimeout=function(){el.textContent="50+"};
+    xhr.onerror=function(){el.textContent="58"};
+    xhr.ontimeout=function(){el.textContent="58"};
     xhr.send();
-  }catch(e){el.textContent="50+"}
+  }catch(e){el.textContent="58"}
 }
 fetchKolCount();
 setInterval(fetchKolCount,30000);
