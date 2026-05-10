@@ -3,140 +3,92 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-<title>SENTRY Protocol — Agent-Native KOL Signal Intelligence on Solana</title>
-<meta name="description" content="SENTRY watches 500+ KOL wallets on Solana, scores conviction in real-time, and serves verified signals as x402-gated API endpoints.">
+<title>SENTRY — Bloomberg Terminal for Solana Agents</title>
+<meta name="description" content="One API call. The highest-conviction KOL trade in the last 60 seconds. $0.001 in USDC. No key, no account, no subscription.">
 <meta name="robots" content="index, follow">
 <link rel="canonical" href="https://sentry-protocol.xyz">
-<meta property="og:type" content="website"><meta property="og:url" content="https://sentry-protocol.xyz"><meta property="og:title" content="SENTRY Protocol"><meta property="og:description" content="The first agent-to-agent signal marketplace on Solana."><meta property="og:image" content="https://sentry-protocol.xyz/og-image.png"><meta property="og:image:width" content="1200"><meta property="og:image:height" content="630">
-<meta name="twitter:card" content="summary_large_image"><meta name="twitter:site" content="@brandononchain"><meta name="twitter:title" content="SENTRY Protocol"><meta name="twitter:description" content="500+ KOL wallets. Real-time conviction scoring. x402 micropayments."><meta name="twitter:image" content="https://sentry-protocol.xyz/og-image.png">
-<script type="application/ld+json">{"@context":"https://schema.org","@type":"SoftwareApplication","name":"SENTRY Protocol","applicationCategory":"FinanceApplication","url":"https://sentry-protocol.xyz"}</script>
+<meta property="og:type" content="website"><meta property="og:url" content="https://sentry-protocol.xyz"><meta property="og:title" content="SENTRY — Bloomberg Terminal for Solana Agents"><meta property="og:description" content="One API call. The highest-conviction KOL trade in the last 60 seconds. $0.001 in USDC."><meta property="og:image" content="https://sentry-protocol.xyz/og-image.png"><meta property="og:image:width" content="1200"><meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image"><meta name="twitter:site" content="@brandononchain"><meta name="twitter:title" content="SENTRY — Bloomberg Terminal for Solana Agents"><meta name="twitter:description" content="Your agent knows what top KOLs just bought before their followers do."><meta name="twitter:image" content="https://sentry-protocol.xyz/og-image.png">
+<script type="application/ld+json">{"@context":"https://schema.org","@type":"SoftwareApplication","name":"SENTRY","applicationCategory":"FinanceApplication","url":"https://sentry-protocol.xyz","description":"Bloomberg Terminal for Solana Agents. One API call returns the highest-conviction KOL trade."}</script>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E%E2%97%88%3C/text%3E%3C/svg%3E">
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@300;400;500&family=DM+Serif+Display:ital@0;1&display=swap" rel="stylesheet">
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
-
 :root{
-  --bg:#0a0a0c;
-  --card:#121215;
-  --card2:#1a1a1e;
-  --green:#b8f0c4;
-  --green2:#7ebb8c;
-  --white:#e6e6ea;
-  --gray:#8e8e96;
-  --dim:#4a4a52;
-  --faint:#2a2a30;
-  --line:#1c1c22;
-  --mono:'DM Mono',monospace;
-  --serif:'DM Serif Display',serif;
+  --bg:#0a0a0c;--card:#121215;--card2:#1a1a1e;
+  --green:#b8f0c4;--green2:#7ebb8c;
+  --white:#e6e6ea;--gray:#8e8e96;--dim:#4a4a52;--faint:#2a2a30;--line:#1c1c22;
+  --mono:'DM Mono',monospace;--serif:'DM Serif Display',serif;
   --ease:cubic-bezier(0.25,1,0.5,1);
 }
-
 html{font-size:16px;scroll-behavior:smooth;scroll-padding-top:72px}
 body{background:var(--bg);color:var(--white);font-family:var(--mono);-webkit-font-smoothing:antialiased;overflow-x:hidden}
 a{color:inherit;text-decoration:none}
-
-/* LAYOUT */
+.skip{position:absolute;top:-999px;left:16px;background:var(--green);color:var(--bg);padding:8px 16px;z-index:200;font-size:12px;border-radius:4px;font-family:var(--mono)}
+.skip:focus{top:16px}
 .wrap{width:100%;max-width:960px;margin:0 auto;padding:0 24px}
 @media(max-width:480px){.wrap{padding:0 18px}}
 
-/* ==================
-   NAV
-   ================== */
+/* NAV */
 header{position:fixed;top:0;left:0;right:0;z-index:50;padding:14px 24px}
 @media(max-width:480px){header{padding:10px 18px}}
-.nav-bar{
-  max-width:960px;margin:0 auto;display:flex;align-items:center;justify-content:space-between;
-  background:rgba(10,10,12,0.88);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);
-  border:1px solid var(--line);border-radius:100px;padding:8px 18px;
-}
-.nav-logo{font-family:var(--mono);font-size:11px;font-weight:500;letter-spacing:0.22em;text-transform:uppercase;color:var(--green)}
-.nav-logo span{color:var(--dim)}
+.nav-bar{max-width:960px;margin:0 auto;display:flex;align-items:center;justify-content:space-between;background:rgba(10,10,12,0.88);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);border:1px solid var(--line);border-radius:100px;padding:8px 18px}
+.nav-logo{font-size:11px;font-weight:500;letter-spacing:0.22em;text-transform:uppercase;color:var(--green)}
 .nav-mid{display:flex;gap:24px}
 .nav-mid a{font-size:10px;color:var(--dim);letter-spacing:0.1em;text-transform:uppercase;transition:color .2s}
 .nav-mid a:hover{color:var(--white)}
 .burger{display:none;background:none;border:none;cursor:pointer;padding:6px;-webkit-tap-highlight-color:transparent}
-.burger div{width:16px;height:1.5px;background:var(--gray);transition:all .3s var(--ease)}.burger div+div{margin-top:4px}
-.burger.open div:first-child{transform:rotate(45deg) translate(3px,3px)}.burger.open div:nth-child(2){opacity:0}.burger.open div:last-child{transform:rotate(-45deg) translate(3px,-3px)}
+.burger span{display:block;width:16px;height:1.5px;background:var(--gray);transition:all .3s var(--ease)}.burger span+span{margin-top:4px}
+.burger.open span:first-child{transform:rotate(45deg) translate(3px,3px)}.burger.open span:nth-child(2){opacity:0}.burger.open span:last-child{transform:rotate(-45deg) translate(3px,-3px)}
 @media(max-width:640px){.nav-mid{display:none}.burger{display:block}}
-
-/* Mobile menu */
 .m-menu{display:none;position:fixed;inset:0;z-index:49;background:rgba(10,10,12,.98);align-items:center;justify-content:center;flex-direction:column;gap:28px;opacity:0;pointer-events:none;transition:opacity .3s}
 .m-menu.open{opacity:1;pointer-events:auto}
-.m-menu a{font-size:15px;color:var(--white);letter-spacing:.12em;text-transform:uppercase;font-weight:400}
+.m-menu a{font-size:15px;color:var(--white);letter-spacing:.12em;text-transform:uppercase}
 @media(max-width:640px){.m-menu{display:flex}}
+
+/* BADGE */
+.badge{display:inline-flex;align-items:center;gap:6px;width:fit-content;padding:4px 10px;border-radius:100px;border:1px solid var(--faint);font-size:9px;letter-spacing:.16em;text-transform:uppercase;color:var(--green2)}
+.badge-dot{width:4px;height:4px;border-radius:50%;background:var(--green2);animation:blink 2s infinite}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:.2}}
+
+/* BUTTONS */
+.btn-w{display:inline-flex;align-items:center;gap:6px;padding:10px 20px;border-radius:100px;font-family:var(--mono);font-size:10px;letter-spacing:.1em;text-transform:uppercase;font-weight:500;background:var(--white);color:var(--bg);border:none;cursor:pointer;transition:opacity .15s,transform .1s;-webkit-tap-highlight-color:transparent}
+.btn-w:active{transform:scale(.97)}.btn-w:hover{opacity:.88}
+.btn-o{display:inline-flex;align-items:center;padding:10px 20px;border-radius:100px;font-family:var(--mono);font-size:10px;letter-spacing:.1em;text-transform:uppercase;font-weight:400;background:none;color:var(--gray);border:1px solid var(--faint);cursor:pointer;transition:border-color .2s,color .2s,transform .1s;-webkit-tap-highlight-color:transparent}
+.btn-o:active{transform:scale(.97)}.btn-o:hover{border-color:var(--dim);color:var(--white)}
 
 /* ==================
    HERO
    ================== */
-.hero{
-  min-height:100dvh;display:flex;flex-direction:column;justify-content:flex-end;
-  padding:0 0 48px;
-}
-.hero-inner{display:flex;flex-direction:column;gap:20px}
-.badge{
-  display:inline-flex;align-items:center;gap:6px;width:fit-content;
-  padding:4px 10px;border-radius:100px;border:1px solid var(--faint);
-  font-size:9px;letter-spacing:.16em;text-transform:uppercase;color:var(--green2);
-}
-.badge-dot{width:4px;height:4px;border-radius:50%;background:var(--green2);animation:blink 2s infinite}
-@keyframes blink{0%,100%{opacity:1}50%{opacity:.2}}
-
-.hero h1{
-  font-family:var(--serif);font-weight:400;font-style:italic;
-  font-size:clamp(36px,9vw,72px);line-height:1.05;color:var(--white);
-}
+.hero{min-height:100dvh;display:flex;flex-direction:column;justify-content:flex-end;padding-bottom:48px}
+.hero-inner{display:flex;flex-direction:column;gap:18px}
+.hero h1{font-family:var(--serif);font-weight:400;font-style:italic;font-size:clamp(32px,8vw,64px);line-height:1.08;color:var(--white)}
 .hero h1 em{font-style:normal;color:var(--green)}
-.hero-desc{font-size:12px;color:var(--gray);max-width:460px;line-height:1.8;font-weight:300}
+.hero-desc{font-size:12px;color:var(--gray);max-width:440px;line-height:1.8;font-weight:300}
 .hero-btns{display:flex;gap:8px;flex-wrap:wrap;padding-top:4px}
-.btn-w{
-  display:inline-flex;align-items:center;gap:6px;padding:10px 20px;border-radius:100px;
-  font-family:var(--mono);font-size:10px;letter-spacing:.1em;text-transform:uppercase;font-weight:500;
-  background:var(--white);color:var(--bg);border:none;cursor:pointer;
-  transition:opacity .15s,transform .1s;-webkit-tap-highlight-color:transparent;
-}
-.btn-w:active{transform:scale(.97)}
-.btn-w:hover{opacity:.88}
-.btn-o{
-  display:inline-flex;align-items:center;padding:10px 20px;border-radius:100px;
-  font-family:var(--mono);font-size:10px;letter-spacing:.1em;text-transform:uppercase;font-weight:400;
-  background:none;color:var(--gray);border:1px solid var(--faint);cursor:pointer;
-  transition:border-color .2s,color .2s,transform .1s;-webkit-tap-highlight-color:transparent;
-}
-.btn-o:active{transform:scale(.97)}
-.btn-o:hover{border-color:var(--dim);color:var(--white)}
 
-/* Stats row */
-.stats{
-  display:grid;grid-template-columns:repeat(4,1fr);gap:1px;
-  margin-top:36px;border-radius:10px;overflow:hidden;background:var(--line);
-}
-.stat{background:var(--card);padding:16px 14px}
-.stat-v{font-size:clamp(15px,2.5vw,20px);font-weight:500;color:var(--white);font-variant-numeric:tabular-nums}
-.stat-l{font-size:8px;color:var(--dim);letter-spacing:.14em;text-transform:uppercase;margin-top:3px}
-@media(max-width:480px){.stats{grid-template-columns:1fr 1fr}}
+/* Proof bar */
+.proof{display:flex;gap:24px;flex-wrap:wrap;margin-top:32px;padding-top:20px;border-top:1px solid var(--line)}
+.proof-item{display:flex;flex-direction:column;gap:2px}
+.proof-val{font-size:clamp(15px,2vw,18px);font-weight:500;color:var(--white);font-variant-numeric:tabular-nums}
+.proof-label{font-size:8px;color:var(--dim);letter-spacing:.14em;text-transform:uppercase}
 
 /* ==================
-   FEED
+   LIVE FEED — the product IS the feed
    ================== */
 .feed-section{padding:28px 0 48px}
 .feed-box{border:1px solid var(--line);border-radius:10px;overflow:hidden;background:var(--card)}
-.feed-top{
-  padding:10px 14px;border-bottom:1px solid var(--line);
-  display:flex;justify-content:space-between;align-items:center;
-}
+.feed-top{padding:10px 14px;border-bottom:1px solid var(--line);display:flex;justify-content:space-between;align-items:center}
 .feed-top h2{font-size:9px;letter-spacing:.14em;text-transform:uppercase;color:var(--gray);font-weight:400;display:flex;align-items:center;gap:5px}
 .feed-top h2::before{content:'';width:4px;height:4px;border-radius:50%;background:var(--green2);animation:blink 2s infinite}
 .feed-top span{font-size:8px;color:var(--faint)}
 .feed-list{max-height:240px;overflow:hidden}
-.row{
-  display:grid;grid-template-columns:68px 1fr 36px 40px;gap:4px;
-  padding:7px 14px;border-bottom:1px solid var(--line);font-size:10px;align-items:center;
-}
+.row{display:grid;grid-template-columns:68px 1fr 36px 40px;gap:4px;padding:7px 14px;border-bottom:1px solid var(--line);font-size:10px;align-items:center}
 .row:last-child{border:none}
 .row-kol{color:var(--green2);font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .row-tok{color:var(--gray);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.row-act{font-weight:500;font-size:9px}
-.row-buy{color:var(--green2)}.row-sell{color:#e07070}
+.row-act{font-weight:500;font-size:9px}.row-buy{color:var(--green2)}.row-sell{color:#e07070}
 .row-sc{color:var(--dim);text-align:right;font-variant-numeric:tabular-nums}
 
 /* ==================
@@ -148,48 +100,38 @@ header{position:fixed;top:0;left:0;right:0;z-index:50;padding:14px 24px}
 .sect-h h2{font-family:var(--serif);font-style:italic;font-size:clamp(22px,4vw,36px);line-height:1.15;margin-top:8px}
 .sect-h p{font-size:11px;color:var(--gray);max-width:400px;margin-top:8px;line-height:1.75;font-weight:300}
 
-/* Grid cards */
-.g3{display:grid;grid-template-columns:repeat(3,1fr);gap:1px;background:var(--line);border-radius:10px;overflow:hidden}
-.g2{display:grid;grid-template-columns:1fr 1fr;gap:1px;background:var(--line);border-radius:10px;overflow:hidden}
-@media(max-width:640px){.g3,.g2{grid-template-columns:1fr}}
+/* How it works — outcome language */
+.how-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:1px;background:var(--line);border-radius:10px;overflow:hidden}
+@media(max-width:640px){.how-grid{grid-template-columns:1fr}}
+.how-card{background:var(--card);padding:clamp(18px,3vw,28px) clamp(16px,2.5vw,22px);transition:background .25s}
+.how-card:hover{background:var(--card2)}
+.how-num{font-size:clamp(22px,3vw,32px);font-weight:500;color:var(--faint);margin-bottom:clamp(8px,1.5vw,12px)}
+.how-card h3{font-size:10px;font-weight:500;letter-spacing:.08em;text-transform:uppercase;margin-bottom:6px}
+.how-card p{font-size:10px;color:var(--gray);line-height:1.7;font-weight:300}
 
-.gcard{background:var(--card);padding:clamp(18px,3vw,28px) clamp(16px,2.5vw,22px);transition:background .25s}
-.gcard:hover{background:var(--card2)}
-.gcard-n{font-size:clamp(22px,3.5vw,36px);font-weight:500;color:var(--faint);margin-bottom:clamp(8px,1.5vw,14px)}
-.gcard h3{font-size:10px;font-weight:500;letter-spacing:.08em;text-transform:uppercase;margin-bottom:6px}
-.gcard p{font-size:10px;color:var(--gray);line-height:1.7;font-weight:300}
-.gcard-ico{
-  width:26px;height:26px;border-radius:6px;display:flex;align-items:center;justify-content:center;
-  font-size:12px;margin-bottom:10px;background:var(--card2);color:var(--gray);border:1px solid var(--line);
-}
-
-/* Code */
-.code-box{border:1px solid var(--line);border-radius:10px;overflow:hidden;background:var(--card)}
-.code-top{display:flex;justify-content:space-between;align-items:center;padding:10px 14px;border-bottom:1px solid var(--line)}
-.code-dots{display:flex;gap:4px}.code-dots i{width:6px;height:6px;border-radius:50%;background:var(--faint);display:block}
-.code-file{font-size:9px;color:var(--faint)}
-.code-body{padding:14px;overflow-x:auto;-webkit-overflow-scrolling:touch}
-.code-body pre{font-size:10px;line-height:1.85;color:var(--gray);white-space:pre;tab-size:2}
+/* One endpoint — replaces pricing section */
+.endpoint-box{border:1px solid var(--line);border-radius:10px;overflow:hidden;background:var(--card)}
+.endpoint-gap{margin-top:12px}
+.endpoint-top{padding:10px 14px;border-bottom:1px solid var(--line);display:flex;justify-content:space-between;align-items:center}
+.endpoint-method{font-size:10px;font-weight:500;color:var(--green2);letter-spacing:.06em}
+.endpoint-price{font-size:9px;color:var(--dim);letter-spacing:.08em}
+.endpoint-body{padding:14px;overflow-x:auto;-webkit-overflow-scrolling:touch}
+.endpoint-body pre{font-size:10px;line-height:1.85;color:var(--gray);white-space:pre;tab-size:2}
 .kw{color:var(--green2)}.st{color:#cc9060}.cm{color:var(--faint);font-style:italic}.fn{color:#7eaaee}.nm{color:#ccb84a}
 
-/* Pricing */
-.pcard{background:var(--card);padding:clamp(20px,3vw,32px) clamp(16px,2.5vw,22px);position:relative;transition:background .25s}
-.pcard:hover{background:var(--card2)}
-.pcard.ft{background:var(--card2)}
-.pcard.ft::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:var(--green2);opacity:.5}
-.pcard.ft .ptier{color:var(--green2)}
-.ptier{font-size:8px;letter-spacing:.18em;text-transform:uppercase;color:var(--faint);margin-bottom:8px}
-.pprice{font-size:clamp(18px,2.5vw,24px);font-weight:500;color:var(--white);margin-bottom:2px}
-.pprice span{font-size:10px;font-weight:300;color:var(--dim)}
-.pnote{font-size:9px;color:var(--faint);margin-bottom:14px}
-.plist{list-style:none;display:flex;flex-direction:column;gap:7px}
-.plist li{font-size:9px;color:var(--gray);display:flex;align-items:baseline;gap:6px;font-weight:300;line-height:1.5}
-.plist li::before{content:'';width:3px;height:3px;border-radius:50%;background:var(--dim);flex-shrink:0}
+/* Under the hood */
+.hood-grid{display:grid;grid-template-columns:1fr 1fr;gap:1px;background:var(--line);border-radius:10px;overflow:hidden}
+@media(max-width:640px){.hood-grid{grid-template-columns:1fr}}
+.hood-card{background:var(--card);padding:clamp(18px,3vw,28px) clamp(16px,2.5vw,22px);transition:background .25s}
+.hood-card:hover{background:var(--card2)}
+.hood-ico{width:26px;height:26px;border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:12px;margin-bottom:10px;background:var(--card2);color:var(--gray);border:1px solid var(--line)}
+.hood-card h3{font-size:10px;font-weight:500;letter-spacing:.06em;text-transform:uppercase;margin-bottom:5px}
+.hood-card p{font-size:10px;color:var(--gray);line-height:1.7;font-weight:300}
 
 /* CTA */
-.cta-sect{padding:clamp(48px,8vw,96px) 0;text-align:center;display:flex;flex-direction:column;align-items:center;border-top:1px solid var(--line)}
-.cta-sect h2{font-family:var(--serif);font-style:italic;font-size:clamp(24px,5vw,40px);line-height:1.1;margin:8px 0 12px}
-.cta-sect p{font-size:11px;color:var(--gray);max-width:340px;margin-bottom:24px;line-height:1.75;font-weight:300}
+.cta{padding:clamp(48px,8vw,96px) 0;text-align:center;display:flex;flex-direction:column;align-items:center;border-top:1px solid var(--line)}
+.cta h2{font-family:var(--serif);font-style:italic;font-size:clamp(24px,5vw,40px);line-height:1.1;margin:8px 0 12px}
+.cta p{font-size:11px;color:var(--gray);max-width:340px;margin-bottom:24px;line-height:1.75;font-weight:300}
 .cta-btns{display:flex;gap:8px;justify-content:center;flex-wrap:wrap}
 
 /* Footer */
@@ -206,7 +148,6 @@ footer{padding:28px 0;border-top:1px solid var(--line)}
 .reveal.show{opacity:1;transform:none}
 .hero-enter{opacity:0;transform:translateY(18px);transition:opacity .6s var(--ease),transform .6s var(--ease)}
 .hero-enter.show{opacity:1;transform:none}
-
 @media(prefers-reduced-motion:reduce){.reveal,.hero-enter{opacity:1!important;transform:none!important;transition:none!important}.badge-dot{animation:none!important}}
 @media(pointer:coarse){.btn-w,.btn-o{min-height:44px}.m-menu a{min-height:44px;padding:8px 0;display:flex;align-items:center}}
 @supports(padding:env(safe-area-inset-top)){header{padding-top:calc(14px + env(safe-area-inset-top))}footer{padding-bottom:calc(28px + env(safe-area-inset-bottom))}}
@@ -214,139 +155,149 @@ footer{padding:28px 0;border-top:1px solid var(--line)}
 </head>
 <body>
 
+<a href="#main" class="skip">Skip to content</a>
+
 <header>
 <div class="nav-bar">
-  <a href="/" class="nav-logo">Sentry <span>/ sol</span></a>
-  <nav class="nav-mid">
-    <a href="#protocol">Protocol</a>
-    <a href="#architecture">Architecture</a>
+  <a href="/" class="nav-logo">Sentry</a>
+  <nav class="nav-mid" aria-label="Main">
+    <a href="#how">How It Works</a>
     <a href="#api">API</a>
-    <a href="#pricing">Pricing</a>
+    <a href="#under-the-hood">Architecture</a>
   </nav>
-  <button type="button" class="burger" id="burgerBtn" aria-label="Menu" aria-expanded="false"><div></div><div></div><div></div></button>
+  <button type="button" class="burger" id="burgerBtn" aria-label="Menu" aria-expanded="false"><span></span><span></span><span></span></button>
 </div>
 </header>
 
 <div class="m-menu" id="mMenu">
-  <a href="#protocol">Protocol</a>
-  <a href="#architecture">Architecture</a>
+  <a href="#how">How It Works</a>
   <a href="#api">API</a>
-  <a href="#pricing">Pricing</a>
+  <a href="#under-the-hood">Architecture</a>
 </div>
 
-<main>
+<main id="main">
 
-<section class="hero wrap">
-  <div class="hero-inner">
-    <div class="badge hero-enter"><span class="badge-dot"></span> Frontier Hackathon</div>
-    <h1 class="hero-enter">Autonomous<br><em>KOL signal</em><br>intelligence</h1>
-    <p class="hero-desc hero-enter">Sentry watches 500+ KOL wallets on Solana, scores conviction using on-chain behavior, and exposes verified signals as x402-gated endpoints. The first agent-to-agent signal marketplace.</p>
-    <div class="hero-btns hero-enter">
-      <a href="https://github.com/brandononchain/sentry-protocol" target="_blank" rel="noopener" class="btn-w">Start Building &#8599;</a>
-      <a href="#api" class="btn-o">View API</a>
+  <!-- HERO — outcome, not infrastructure -->
+  <section class="hero wrap">
+    <div class="hero-inner">
+      <div class="badge hero-enter"><span class="badge-dot"></span> Solana Frontier Hackathon</div>
+      <h1 class="hero-enter">The <em>Bloomberg<br>Terminal</em> for<br>Solana agents</h1>
+      <p class="hero-desc hero-enter">Your agent knows what @ansem just bought before his followers do. One API call returns the highest-conviction KOL trade in the last 60 seconds. $0.001 in USDC. No key, no account.</p>
+      <div class="hero-btns hero-enter">
+        <a href="https://github.com/brandononchain/sentry-protocol" target="_blank" rel="noopener" class="btn-w">Start Building &#8599;</a>
+        <a href="#api" class="btn-o">See the API</a>
+      </div>
+      <div class="proof hero-enter">
+        <div class="proof-item"><div class="proof-val">512</div><div class="proof-label">KOL wallets watched</div></div>
+        <div class="proof-item"><div class="proof-val">$0.001</div><div class="proof-label">per signal</div></div>
+        <div class="proof-item"><div class="proof-val">&lt;400ms</div><div class="proof-label">block to signal</div></div>
+        <div class="proof-item"><div class="proof-val">x402</div><div class="proof-label">pay-per-request</div></div>
+      </div>
     </div>
-    <div class="stats hero-enter">
-      <div class="stat"><div class="stat-v">512</div><div class="stat-l">KOL Wallets</div></div>
-      <div class="stat"><div class="stat-v">$0.001</div><div class="stat-l">Per Signal</div></div>
-      <div class="stat"><div class="stat-v">&lt;400ms</div><div class="stat-l">Latency</div></div>
-      <div class="stat"><div class="stat-v">24/7</div><div class="stat-l">Autonomous</div></div>
+  </section>
+
+  <!-- LIVE FEED — this IS the product -->
+  <section class="feed-section wrap">
+    <div class="feed-box reveal">
+      <div class="feed-top"><h2>What your agent sees right now</h2><span>LIVE</span></div>
+      <div class="feed-list" id="feedList">
+        <div class="row"><span class="row-kol">@ansem</span><span class="row-tok">POPCAT / SOL</span><span class="row-act row-buy">BUY</span><span class="row-sc">94</span></div>
+        <div class="row"><span class="row-kol">@hsaka</span><span class="row-tok">WIF / USDC</span><span class="row-act row-buy">BUY</span><span class="row-sc">87</span></div>
+        <div class="row"><span class="row-kol">@degenking</span><span class="row-tok">BONK / SOL</span><span class="row-act row-sell">SELL</span><span class="row-sc">72</span></div>
+        <div class="row"><span class="row-kol">@blknoiz06</span><span class="row-tok">JUP / USDC</span><span class="row-act row-buy">BUY</span><span class="row-sc">91</span></div>
+        <div class="row"><span class="row-kol">@cryptowiz</span><span class="row-tok">RENDER / SOL</span><span class="row-act row-buy">BUY</span><span class="row-sc">83</span></div>
+        <div class="row"><span class="row-kol">@maboroshi</span><span class="row-tok">PYTH / USDC</span><span class="row-act row-sell">SELL</span><span class="row-sc">68</span></div>
+      </div>
     </div>
-  </div>
-</section>
+  </section>
 
-<section class="feed-section wrap">
-  <div class="feed-box reveal">
-    <div class="feed-top"><h2>Live Signal Feed</h2><span>MAINNET-BETA</span></div>
-    <div class="feed-list" id="feedList">
-      <div class="row"><span class="row-kol">@ansem</span><span class="row-tok">POPCAT / SOL</span><span class="row-act row-buy">BUY</span><span class="row-sc">94</span></div>
-      <div class="row"><span class="row-kol">@hsaka</span><span class="row-tok">WIF / USDC</span><span class="row-act row-buy">BUY</span><span class="row-sc">87</span></div>
-      <div class="row"><span class="row-kol">@degenking</span><span class="row-tok">BONK / SOL</span><span class="row-act row-sell">SELL</span><span class="row-sc">72</span></div>
-      <div class="row"><span class="row-kol">@blknoiz06</span><span class="row-tok">JUP / USDC</span><span class="row-act row-buy">BUY</span><span class="row-sc">91</span></div>
-      <div class="row"><span class="row-kol">@cryptowiz</span><span class="row-tok">RENDER / SOL</span><span class="row-act row-buy">BUY</span><span class="row-sc">83</span></div>
-      <div class="row"><span class="row-kol">@maboroshi</span><span class="row-tok">PYTH / USDC</span><span class="row-act row-sell">SELL</span><span class="row-sc">68</span></div>
+  <!-- HOW IT WORKS — outcome language, not architecture -->
+  <section id="how" class="sect wrap">
+    <div class="sect-h reveal">
+      <div class="badge">How It Works</div>
+      <h2>Your agent gets smarter<br>in three steps</h2>
     </div>
-  </div>
-</section>
+    <div class="how-grid reveal">
+      <article class="how-card"><div class="how-num">01</div><h3>We watch</h3><p>512 KOL wallets monitored 24/7 via Helius. Every swap on Jupiter, Raydium, and Meteora — captured in under 400ms.</p></article>
+      <article class="how-card"><div class="how-num">02</div><h3>We score</h3><p>Each trade gets a 0-100 conviction score. How much did they buy? Do they hold or flip? Have they been rugged before? Five signals, one number.</p></article>
+      <article class="how-card"><div class="how-num">03</div><h3>Your agent acts</h3><p>One API call. The response tells your agent exactly what was bought, by whom, and how confident they are. Your agent decides what to do next.</p></article>
+    </div>
+  </section>
 
-<section id="protocol" class="sect wrap">
-  <div class="sect-h reveal"><div class="badge">Protocol</div><h2>Signal. Score. Serve.</h2><p>Three phases, zero human intervention. Raw wallet activity becomes tradeable intelligence for autonomous agents.</p></div>
-  <div class="g3 reveal">
-    <article class="gcard"><div class="gcard-n">01</div><h3>Ingest</h3><p>Subscribes to 512 KOL wallets via Helius WebSocket. Every swap on Jupiter, Raydium, and Meteora captured within 400ms of block confirmation.</p></article>
-    <article class="gcard"><div class="gcard-n">02</div><h3>Score</h3><p>Five on-chain metrics: position size, hold duration, historical PnL, rug avoidance, multi-wallet consensus. Output: 0-100 conviction score.</p></article>
-    <article class="gcard"><div class="gcard-n">03</div><h3>Serve</h3><p>Scored signals exposed via x402-gated HTTP endpoints. $0.001 per signal in USDC. No API keys. No subscriptions. Sign and fetch.</p></article>
-  </div>
-</section>
+  <!-- THE API — one endpoint, one price -->
+  <section id="api" class="sect wrap">
+    <div class="sect-h reveal">
+      <div class="badge">The API</div>
+      <h2>One endpoint. One penny. One answer.</h2>
+      <p>No API key. No account. No subscription. Your agent pays $0.001 in USDC per request via the x402 protocol. That's it.</p>
+    </div>
 
-<section id="architecture" class="sect wrap">
-  <div class="sect-h reveal"><div class="badge">Architecture</div><h2>Built for agents, not dashboards</h2><p>Every decision optimizes for machine consumption. Agents are first-class citizens.</p></div>
-  <div class="g2 reveal">
-    <article class="gcard"><div class="gcard-ico">&#9881;</div><h3>Helius Geyser</h3><p>Real-time WebSocket subscriptions on 512 wallets. Enhanced transaction parsing. Sub-second latency from block to signal.</p></article>
-    <article class="gcard"><div class="gcard-ico">&#9733;</div><h3>Conviction Engine</h3><p>Five-factor model. Position sizing 40%, hold history 20%, PnL 15%, rug avoidance 15%, consensus 10%.</p></article>
-    <article class="gcard"><div class="gcard-ico">&#9889;</div><h3>x402 Payment</h3><p>HTTP 402 with USDC terms. Coinbase facilitator settles on-chain. Stateless. No sessions. No API keys.</p></article>
-    <article class="gcard"><div class="gcard-ico">&#9878;</div><h3>Agent Kit Plugin</h3><p>Native plugin for SendAI's Solana Agent Kit. Any LangChain or Vercel AI SDK agent consumes signals with one import.</p></article>
-  </div>
-</section>
-
-<section id="api" class="sect wrap">
-  <div class="sect-h reveal"><div class="badge">Developer Experience</div><h2>One request. One micropayment.</h2></div>
-  <div class="code-box reveal">
-    <div class="code-top"><div class="code-dots"><i></i><i></i><i></i></div><span class="code-file">consume-signal.ts</span></div>
-    <div class="code-body"><pre><span class="cm">// No API key. No account. Just USDC.</span>
-
-<span class="kw">import</span> { <span class="fn">SolanaAgentKit</span> } <span class="kw">from</span> <span class="st">"solana-agent-kit"</span>;
-<span class="kw">import</span> { <span class="fn">SentryPlugin</span> } <span class="kw">from</span> <span class="st">"@sentry/agent-kit"</span>;
-
-<span class="kw">const</span> agent = <span class="kw">new</span> <span class="fn">SolanaAgentKit</span>(wallet, rpc)
-  .<span class="fn">use</span>(<span class="fn">SentryPlugin</span>);
-
-<span class="kw">const</span> signals = <span class="kw">await</span> agent.<span class="fn">getSentrySignals</span>({
-  minConviction: <span class="nm">80</span>,
-  maxAge: <span class="nm">60</span>,
+    <div class="endpoint-box reveal">
+      <div class="endpoint-top"><span class="endpoint-method">GET /v1/signals</span><span class="endpoint-price">$0.001 USDC per call</span></div>
+      <div class="endpoint-body"><pre><span class="cm">// Request</span>
+<span class="kw">const</span> res = <span class="kw">await</span> <span class="fn">fetch</span>(<span class="st">"https://sentry-protocol.xyz/v1/signals"</span>, {
+  headers: { <span class="st">"X-402-Payment"</span>: signedUsdcPayment }
 });
 
-<span class="kw">for</span> (<span class="kw">const</span> s <span class="kw">of</span> signals) {
-  <span class="kw">if</span> (s.score &gt; <span class="nm">90</span>) {
-    <span class="kw">await</span> agent.<span class="fn">trade</span>(s.tokenMint, s.size);
-  }
+<span class="cm">// Response</span>
+{
+  <span class="st">"kol"</span>: <span class="st">"@ansem"</span>,
+  <span class="st">"action"</span>: <span class="st">"BUY"</span>,
+  <span class="st">"token"</span>: <span class="st">"POPCAT"</span>,
+  <span class="st">"mint"</span>: <span class="st">"7GCihgDB8fe6KNjn2MYtkzZcRjQy3t9GHdC8uHYmW2hr"</span>,
+  <span class="st">"conviction"</span>: <span class="nm">94</span>,
+  <span class="st">"size_sol"</span>: <span class="nm">142.5</span>,
+  <span class="st">"timestamp"</span>: <span class="nm">1715284800</span>
 }</pre></div>
-  </div>
-</section>
-
-<section id="pricing" class="sect wrap">
-  <div class="sect-h reveal"><div class="badge">Signal Tiers</div><h2>Pay for what you consume</h2><p>No subscriptions. Usage-based via x402 micropayments in USDC.</p></div>
-  <div class="g3 reveal">
-    <article class="pcard">
-      <div class="ptier">Signal Stream</div><div class="pprice">$0.001 <span>/ signal</span></div><div class="pnote">pay-per-request via x402</div>
-      <ul class="plist"><li>All 512 KOL wallets</li><li>Real-time conviction scores</li><li>Token metadata</li><li>60s signal history</li><li>Agent Kit plugin</li></ul>
-    </article>
-    <article class="pcard ft">
-      <div class="ptier">Consensus Feed</div><div class="pprice">$0.005 <span>/ signal</span></div><div class="pnote">multi-KOL convergence</div>
-      <ul class="plist"><li>Everything in Stream</li><li>Multi-wallet consensus</li><li>Historical KOL performance</li><li>Position sizing</li><li>WebSocket streaming</li></ul>
-    </article>
-    <article class="pcard">
-      <div class="ptier">Execution Bundle</div><div class="pprice">$0.01 <span>/ bundle</span></div><div class="pnote">signal + auto-execute</div>
-      <ul class="plist"><li>Everything in Consensus</li><li>Pre-built swap txns</li><li>Jupiter routing</li><li>Slippage protection</li><li>Priority fee estimation</li></ul>
-    </article>
-  </div>
-</section>
-
-<section class="cta-sect wrap">
-  <div class="reveal">
-    <div class="badge"><span class="badge-dot"></span> Shipping Now</div>
-    <h2>Build on signal,<br>not noise</h2>
-    <p>Open source. Live on devnet. Start building autonomous trading agents.</p>
-    <div class="cta-btns">
-      <a href="https://github.com/brandononchain/sentry-protocol" target="_blank" rel="noopener" class="btn-w">GitHub &#8599;</a>
-      <a href="#" class="btn-o">Discord</a>
     </div>
-  </div>
-</section>
+
+    <div class="endpoint-box endpoint-gap reveal">
+      <div class="endpoint-top"><span class="endpoint-method">Agent Kit Plugin</span><span class="endpoint-price">npm install @sentry/agent-kit</span></div>
+      <div class="endpoint-body"><pre><span class="cm">// Two lines to add KOL intelligence to any Solana agent</span>
+<span class="kw">import</span> { <span class="fn">SentryPlugin</span> } <span class="kw">from</span> <span class="st">"@sentry/agent-kit"</span>;
+
+<span class="kw">const</span> agent = <span class="kw">new</span> <span class="fn">SolanaAgentKit</span>(wallet, rpc).<span class="fn">use</span>(<span class="fn">SentryPlugin</span>);
+
+<span class="kw">const</span> signal = <span class="kw">await</span> agent.<span class="fn">getBestSignal</span>();
+<span class="kw">if</span> (signal.conviction &gt; <span class="nm">90</span>) {
+  <span class="kw">await</span> agent.<span class="fn">trade</span>(signal.mint, signal.size_sol);
+}</pre></div>
+    </div>
+  </section>
+
+  <!-- UNDER THE HOOD — for judges, not users -->
+  <section id="under-the-hood" class="sect wrap">
+    <div class="sect-h reveal">
+      <div class="badge">Under the Hood</div>
+      <h2>What makes the score real</h2>
+      <p>Not vibes. Five on-chain metrics weighted into a single conviction number.</p>
+    </div>
+    <div class="hood-grid reveal">
+      <article class="hood-card"><div class="hood-ico">40%</div><h3>Position Size</h3><p>How much of their portfolio did they put in? A $500 trade from a $1M wallet is noise. A $50K trade is conviction.</p></article>
+      <article class="hood-card"><div class="hood-ico">20%</div><h3>Hold History</h3><p>Do they hold for days or flip in minutes? Diamond hands score higher. Serial flippers get discounted.</p></article>
+      <article class="hood-card"><div class="hood-ico">15%</div><h3>Historical PnL</h3><p>Has this wallet actually made money? Past returns on similar tokens weight the score up or down.</p></article>
+      <article class="hood-card"><div class="hood-ico">15%</div><h3>Rug Avoidance</h3><p>How often have they been rugged? Wallets that consistently avoid scam tokens earn trust in the scoring model.</p></article>
+    </div>
+  </section>
+
+  <!-- CTA — narrow, specific -->
+  <section class="cta wrap">
+    <div class="reveal">
+      <div class="badge"><span class="badge-dot"></span> Live on Devnet</div>
+      <h2>Give your agent<br>an edge</h2>
+      <p>Open source. One endpoint. The highest-conviction KOL trade, delivered to your agent in milliseconds.</p>
+      <div class="cta-btns">
+        <a href="https://github.com/brandononchain/sentry-protocol" target="_blank" rel="noopener" class="btn-w">GitHub &#8599;</a>
+        <a href="#api" class="btn-o">See the API</a>
+      </div>
+    </div>
+  </section>
 
 </main>
 
 <footer><div class="wrap foot">
-  <span class="foot-c">SENTRY PROTOCOL &copy; 2026</span>
-  <nav class="foot-l">
+  <span class="foot-c">SENTRY &copy; 2026 / SOLANA FRONTIER HACKATHON</span>
+  <nav class="foot-l" aria-label="Footer">
     <a href="https://github.com/brandononchain/sentry-protocol" target="_blank" rel="noopener">GitHub</a>
     <a href="#">Docs</a>
     <a href="https://x.com/brandononchain" target="_blank" rel="noopener">X</a>
@@ -354,69 +305,23 @@ footer{padding:28px 0;border-top:1px solid var(--line)}
 </div></footer>
 
 <script>
-/* Burger */
-var b = document.getElementById("burgerBtn");
-var mm = document.getElementById("mMenu");
-if (b && mm) {
-  b.addEventListener("click", function() {
-    var o = b.classList.toggle("open");
-    mm.classList.toggle("open");
-    b.setAttribute("aria-expanded", o ? "true" : "false");
-    document.body.style.overflow = o ? "hidden" : "";
-  });
-  var links = mm.querySelectorAll("a");
-  for (var i = 0; i < links.length; i++) {
-    links[i].addEventListener("click", function() {
-      b.classList.remove("open");
-      mm.classList.remove("open");
-      b.setAttribute("aria-expanded", "false");
-      document.body.style.overflow = "";
-    });
-  }
+var b=document.getElementById("burgerBtn"),mm=document.getElementById("mMenu");
+if(b&&mm){
+  b.addEventListener("click",function(){var o=b.classList.toggle("open");mm.classList.toggle("open");b.setAttribute("aria-expanded",o?"true":"false");document.body.style.overflow=o?"hidden":""});
+  var mLinks=mm.querySelectorAll("a");
+  for(var i=0;i<mLinks.length;i++){mLinks[i].addEventListener("click",function(){b.classList.remove("open");mm.classList.remove("open");b.setAttribute("aria-expanded","false");document.body.style.overflow=""});}
 }
-
-/* Hero cascade */
-var hEls = document.querySelectorAll(".hero-enter");
-var noMo = false;
-try { noMo = window.matchMedia("(prefers-reduced-motion:reduce)").matches; } catch(e) {}
-for (var j = 0; j < hEls.length; j++) {
-  if (noMo) { hEls[j].classList.add("show"); }
-  else { (function(el,d){setTimeout(function(){el.classList.add("show")},d)})(hEls[j], 80 + j * 90); }
-}
-
-/* Scroll reveals */
-if ("IntersectionObserver" in window) {
-  var obs = new IntersectionObserver(function(ents) {
-    for (var k = 0; k < ents.length; k++) {
-      if (ents[k].isIntersecting) { ents[k].target.classList.add("show"); obs.unobserve(ents[k].target); }
-    }
-  }, { threshold: 0.05, rootMargin: "0px 0px -20px 0px" });
-  var rv = document.querySelectorAll(".reveal");
-  for (var k = 0; k < rv.length; k++) obs.observe(rv[k]);
-} else {
-  var all = document.querySelectorAll(".reveal");
-  for (var k = 0; k < all.length; k++) all[k].classList.add("show");
-}
-
-/* Feed tick */
+var hEls=document.querySelectorAll(".hero-enter");
+var noMo=false;try{noMo=window.matchMedia("(prefers-reduced-motion:reduce)").matches}catch(e){}
+for(var j=0;j<hEls.length;j++){if(noMo){hEls[j].classList.add("show")}else{(function(el,d){setTimeout(function(){el.classList.add("show")},d)})(hEls[j],80+j*90)}}
+if("IntersectionObserver" in window){
+  var obs=new IntersectionObserver(function(ents){for(var k=0;k<ents.length;k++){if(ents[k].isIntersecting){ents[k].target.classList.add("show");obs.unobserve(ents[k].target)}}},{threshold:0.05,rootMargin:"0px 0px -20px 0px"});
+  var rv=document.querySelectorAll(".reveal");for(var k=0;k<rv.length;k++)obs.observe(rv[k]);
+}else{var all=document.querySelectorAll(".reveal");for(var k=0;k<all.length;k++)all[k].classList.add("show")}
 var KOLS=["@ansem","@hsaka","@blknoiz06","@degenking","@cryptowiz","@maboroshi","@trader_xy","@soljakey","@moondev","@0xSun"];
 var TOKS=["POPCAT/SOL","WIF/USDC","BONK/SOL","JUP/USDC","RENDER/SOL","PYTH/USDC","RAY/SOL","ORCA/USDC"];
 var SIDES=["BUY","BUY","BUY","SELL","BUY"];
-function feedTick(){
-  var fl=document.getElementById("feedList");
-  if(!fl)return;
-  var kol=KOLS[Math.floor(Math.random()*KOLS.length)];
-  var tok=TOKS[Math.floor(Math.random()*TOKS.length)];
-  var side=SIDES[Math.floor(Math.random()*SIDES.length)];
-  var sc=70+Math.floor(Math.random()*30);
-  var r=document.createElement("div");
-  r.className="row";
-  r.innerHTML='<span class="row-kol">'+kol+'</span><span class="row-tok">'+tok+'</span><span class="row-act '+(side==="BUY"?"row-buy":"row-sell")+'">'+side+'</span><span class="row-sc">'+sc+'</span>';
-  r.style.opacity="0";r.style.transform="translateY(6px)";
-  fl.insertBefore(r,fl.firstChild);
-  setTimeout(function(){r.style.transition="opacity .3s,transform .3s";r.style.opacity="1";r.style.transform="none"},10);
-  while(fl.children.length>7)fl.removeChild(fl.lastChild);
-}
+function feedTick(){var fl=document.getElementById("feedList");if(!fl)return;var kol=KOLS[Math.floor(Math.random()*KOLS.length)];var tok=TOKS[Math.floor(Math.random()*TOKS.length)];var side=SIDES[Math.floor(Math.random()*SIDES.length)];var sc=70+Math.floor(Math.random()*30);var r=document.createElement("div");r.className="row";r.innerHTML='<span class="row-kol">'+kol+'</span><span class="row-tok">'+tok+'</span><span class="row-act '+(side==="BUY"?"row-buy":"row-sell")+'">'+side+'</span><span class="row-sc">'+sc+'</span>';r.style.opacity="0";r.style.transform="translateY(6px)";fl.insertBefore(r,fl.firstChild);setTimeout(function(){r.style.transition="opacity .3s,transform .3s";r.style.opacity="1";r.style.transform="none"},10);while(fl.children.length>7)fl.removeChild(fl.lastChild)}
 setInterval(feedTick,4000);
 </script>
 </body>
