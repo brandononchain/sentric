@@ -21,8 +21,8 @@ Your agent knows what @ansem just bought before his followers do. One API call r
 ## Quick start
 
 ```bash
-git clone https://github.com/brandononchain/sentry-protocol
-cd sentry-protocol
+git clone https://github.com/brandononchain/sentric
+cd sentric
 npm install
 cp .env.example .env
 ```
@@ -312,9 +312,9 @@ public/
 
 ## Deployment
 
-**Landing page:** Deployed on Vercel at [sentry-protocol.vercel.app](https://sentry-protocol.vercel.app)
+**Landing page:** Deployed on Vercel at [sentric.vercel.app](https://sentric.vercel.app)
 
-**Backend API:** Deployed on Railway at `sentry-protocol-production.up.railway.app`
+**Backend API:** Deployed on Railway at `sentric-production.up.railway.app`
 
 The landing page fetches the live KOL count from the Railway API every 30 seconds.
 

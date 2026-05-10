@@ -185,7 +185,7 @@ footer{padding:28px 0;border-top:1px solid var(--line)}
       <h1 class="hero-enter">The <em>Bloomberg<br>Terminal</em> for<br>Solana agents</h1>
       <p class="hero-desc hero-enter">Your agent knows what @theo just bought before his followers do. One API call returns the highest-conviction KOL trade in the last 60 seconds. $0.001 in USDC. No key, no account.</p>
       <div class="hero-btns hero-enter">
-        <a href="https://github.com/brandononchain/sentry-protocol" target="_blank" rel="noopener" class="btn-w">Start Building &#8599;</a>
+        <a href="https://github.com/brandononchain/sentric" target="_blank" rel="noopener" class="btn-w">Start Building &#8599;</a>
         <a href="#api" class="btn-o">See the API</a>
       </div>
       <div class="proof hero-enter">
@@ -288,7 +288,7 @@ footer{padding:28px 0;border-top:1px solid var(--line)}
       <h2>Give your agent<br>an edge</h2>
       <p>Open source. One endpoint. The highest-conviction KOL trade, delivered to your agent in milliseconds.</p>
       <div class="cta-btns">
-        <a href="https://github.com/brandononchain/sentry-protocol" target="_blank" rel="noopener" class="btn-w">GitHub &#8599;</a>
+        <a href="https://github.com/brandononchain/sentric" target="_blank" rel="noopener" class="btn-w">GitHub &#8599;</a>
         <a href="#api" class="btn-o">See the API</a>
       </div>
     </div>
@@ -299,7 +299,7 @@ footer{padding:28px 0;border-top:1px solid var(--line)}
 <footer><div class="wrap foot">
   <span class="foot-c">Sentric &copy; 2026 / SOLANA FRONTIER HACKATHON</span>
   <nav class="foot-l" aria-label="Footer">
-    <a href="https://github.com/brandononchain/sentry-protocol" target="_blank" rel="noopener">GitHub</a>
+    <a href="https://github.com/brandononchain/sentric" target="_blank" rel="noopener">GitHub</a>
     <a href="#">Docs</a>
     <a href="https://x.com/brandononchain" target="_blank" rel="noopener">X</a>
   </nav>
@@ -329,7 +329,7 @@ setInterval(feedTick,4000);
 function fetchKolCount(){
   var el=document.getElementById("kolCount");
   if(!el)return;
-  var apiBase="https://sentry-protocol-production.up.railway.app";
+  var apiBase="https://sentric-production.up.railway.app";
   try{
     var xhr=new XMLHttpRequest();
     xhr.open("GET",apiBase+"/v1/kols/count",true);
