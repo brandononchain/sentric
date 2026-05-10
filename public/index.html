@@ -61,23 +61,24 @@ header{position:fixed;top:0;left:0;right:0;z-index:50;padding:14px 24px}
 /* ==================
    HERO
    ================== */
-.hero{min-height:100dvh;display:flex;flex-direction:column;justify-content:flex-end;padding-bottom:48px}
-.hero-inner{display:flex;flex-direction:column;gap:18px}
+.hero{min-height:100dvh;display:flex;flex-direction:column;justify-content:center;padding-top:clamp(80px,14vw,120px);padding-bottom:48px}
+.hero-inner{display:flex;flex-direction:column;gap:20px}
 .hero h1{font-family:var(--serif);font-weight:400;font-style:italic;font-size:clamp(32px,8vw,64px);line-height:1.08;color:var(--white)}
 .hero h1 em{font-style:normal;color:var(--green)}
 .hero-desc{font-size:12px;color:var(--gray);max-width:440px;line-height:1.8;font-weight:300}
 .hero-btns{display:flex;gap:8px;flex-wrap:wrap;padding-top:4px}
 
 /* Proof bar */
-.proof{display:flex;gap:24px;flex-wrap:wrap;margin-top:32px;padding-top:20px;border-top:1px solid var(--line)}
-.proof-item{display:flex;flex-direction:column;gap:2px}
+.proof{display:grid;grid-template-columns:repeat(4,1fr);gap:1px;margin-top:32px;border-radius:8px;overflow:hidden;background:var(--line)}
+.proof-item{display:flex;flex-direction:column;gap:2px;background:var(--card);padding:14px 12px}
+@media(max-width:480px){.proof{grid-template-columns:1fr 1fr}}
 .proof-val{font-size:clamp(15px,2vw,18px);font-weight:500;color:var(--white);font-variant-numeric:tabular-nums}
 .proof-label{font-size:8px;color:var(--dim);letter-spacing:.14em;text-transform:uppercase}
 
 /* ==================
    LIVE FEED — the product IS the feed
    ================== */
-.feed-section{padding:28px 0 48px}
+.feed-section{padding:36px 0 56px}
 .feed-box{border:1px solid var(--line);border-radius:10px;overflow:hidden;background:var(--card)}
 .feed-top{padding:10px 14px;border-bottom:1px solid var(--line);display:flex;justify-content:space-between;align-items:center}
 .feed-top h2{font-size:9px;letter-spacing:.14em;text-transform:uppercase;color:var(--gray);font-weight:400;display:flex;align-items:center;gap:5px}
@@ -111,7 +112,7 @@ header{position:fixed;top:0;left:0;right:0;z-index:50;padding:14px 24px}
 
 /* One endpoint — replaces pricing section */
 .endpoint-box{border:1px solid var(--line);border-radius:10px;overflow:hidden;background:var(--card)}
-.endpoint-gap{margin-top:12px}
+.endpoint-gap{margin-top:16px}
 .endpoint-top{padding:10px 14px;border-bottom:1px solid var(--line);display:flex;justify-content:space-between;align-items:center}
 .endpoint-method{font-size:10px;font-weight:500;color:var(--green2);letter-spacing:.06em}
 .endpoint-price{font-size:9px;color:var(--dim);letter-spacing:.08em}
@@ -124,7 +125,7 @@ header{position:fixed;top:0;left:0;right:0;z-index:50;padding:14px 24px}
 @media(max-width:640px){.hood-grid{grid-template-columns:1fr}}
 .hood-card{background:var(--card);padding:clamp(18px,3vw,28px) clamp(16px,2.5vw,22px);transition:background .25s}
 .hood-card:hover{background:var(--card2)}
-.hood-ico{width:26px;height:26px;border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:12px;margin-bottom:10px;background:var(--card2);color:var(--gray);border:1px solid var(--line)}
+.hood-ico{min-width:36px;height:26px;padding:0 8px;border-radius:6px;display:inline-flex;align-items:center;justify-content:center;font-size:10px;font-weight:500;margin-bottom:10px;background:var(--card2);color:var(--green2);border:1px solid var(--line);font-family:var(--mono);letter-spacing:.02em}
 .hood-card h3{font-size:10px;font-weight:500;letter-spacing:.06em;text-transform:uppercase;margin-bottom:5px}
 .hood-card p{font-size:10px;color:var(--gray);line-height:1.7;font-weight:300}
 
