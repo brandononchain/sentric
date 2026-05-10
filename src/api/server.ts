@@ -80,6 +80,13 @@ export function createServer() {
     res.json({ kols, count: kols.length });
   });
 
+  // KOL count — lightweight endpoint for landing page (must be before :address)
+  app.get("/v1/kols/count", (_req: Request, res: Response) => {
+    res.setHeader("Access-Control-Allow-Origin", "*");
+    res.setHeader("Cache-Control", "public, max-age=30");
+    res.json({ count: kolStore.size() });
+  });
+
   app.get("/v1/kols/:address", (req: Request, res: Response) => {
     const kol = kolStore.get(req.params.address as string);
     if (!kol) {
@@ -94,6 +101,52 @@ export function createServer() {
       avgHoldHours: Math.round(kol.avgHoldDurationMs / 3_600_000),
       rugAvoidance: Math.round(kol.rugAvoidanceRate * 100),
       totalTrades: kol.totalTrackedTrades,
+    });
+  });
+
+  // =========================================
+  // Add KOL wallets dynamically (POST)
+  // =========================================
+
+  app.post("/v1/kols", (req: Request, res: Response) => {
+    const { address, label, tier, winRate, holdHours, rugAvoidance } = req.body;
+
+    if (!address || typeof address !== "string" || address.length < 32) {
+      res.status(400).json({ error: "invalid_address", message: "Solana address required (32+ chars)" });
+      return;
+    }
+
+    if (kolStore.has(address)) {
+      res.status(409).json({ error: "already_tracked", message: "This wallet is already being tracked" });
+      return;
+    }
+
+    const newKol = {
+      address,
+      label: label || address.slice(0, 6),
+      tier: (tier === "s" || tier === "a" || tier === "b") ? tier : "b" as const,
+      historicalWinRate: typeof winRate === "number" ? winRate : 0.5,
+      avgHoldDurationMs: (typeof holdHours === "number" ? holdHours : 2) * 3600000,
+      rugAvoidanceRate: typeof rugAvoidance === "number" ? rugAvoidance : 0.8,
+      totalTrackedTrades: 0,
+      addedAt: Date.now(),
+    };
+
+    kolStore.add(newKol);
+
+    // If ingestion engine is running, subscribe to the new wallet
+    if (config.heliusApiKey) {
+      ingestionEngine.addWallet(address).catch(() => {});
+    }
+
+    res.status(201).json({
+      added: true,
+      kol: {
+        address: newKol.address,
+        label: newKol.label,
+        tier: newKol.tier,
+      },
+      totalKols: kolStore.size(),
     });
   });
 

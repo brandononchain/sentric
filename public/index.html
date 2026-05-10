@@ -189,7 +189,7 @@ footer{padding:28px 0;border-top:1px solid var(--line)}
         <a href="#api" class="btn-o">See the API</a>
       </div>
       <div class="proof hero-enter">
-        <div class="proof-item"><div class="proof-val">512</div><div class="proof-label">KOL wallets watched</div></div>
+        <div class="proof-item"><div class="proof-val" id="kolCount">--</div><div class="proof-label">KOL wallets watched</div></div>
         <div class="proof-item"><div class="proof-val">$0.001</div><div class="proof-label">per signal</div></div>
         <div class="proof-item"><div class="proof-val">&lt;400ms</div><div class="proof-label">block to signal</div></div>
         <div class="proof-item"><div class="proof-val">x402</div><div class="proof-label">pay-per-request</div></div>
@@ -219,7 +219,7 @@ footer{padding:28px 0;border-top:1px solid var(--line)}
       <h2>Your agent gets smarter<br>in three steps</h2>
     </div>
     <div class="how-grid reveal">
-      <article class="how-card"><div class="how-num">01</div><h3>We watch</h3><p>512 KOL wallets monitored 24/7 via Helius. Every swap on Jupiter, Raydium, and Meteora — captured in under 400ms.</p></article>
+      <article class="how-card"><div class="how-num">01</div><h3>We watch</h3><p><span class="kol-count-inline">Hundreds of</span> KOL wallets monitored 24/7 via Helius. Every swap on Jupiter, Raydium, and Meteora — captured in under 400ms.</p></article>
       <article class="how-card"><div class="how-num">02</div><h3>We score</h3><p>Each trade gets a 0-100 conviction score. How much did they buy? Do they hold or flip? Have they been rugged before? Five signals, one number.</p></article>
       <article class="how-card"><div class="how-num">03</div><h3>Your agent acts</h3><p>One API call. The response tells your agent exactly what was bought, by whom, and how confident they are. Your agent decides what to do next.</p></article>
     </div>
@@ -324,6 +324,30 @@ var TOKS=["POPCAT/SOL","WIF/USDC","BONK/SOL","JUP/USDC","RENDER/SOL","PYTH/USDC"
 var SIDES=["BUY","BUY","BUY","SELL","BUY"];
 function feedTick(){var fl=document.getElementById("feedList");if(!fl)return;var kol=KOLS[Math.floor(Math.random()*KOLS.length)];var tok=TOKS[Math.floor(Math.random()*TOKS.length)];var side=SIDES[Math.floor(Math.random()*SIDES.length)];var sc=70+Math.floor(Math.random()*30);var r=document.createElement("div");r.className="row";r.innerHTML='<span class="row-kol">'+kol+'</span><span class="row-tok">'+tok+'</span><span class="row-act '+(side==="BUY"?"row-buy":"row-sell")+'">'+side+'</span><span class="row-sc">'+sc+'</span>';r.style.opacity="0";r.style.transform="translateY(6px)";fl.insertBefore(r,fl.firstChild);setTimeout(function(){r.style.transition="opacity .3s,transform .3s";r.style.opacity="1";r.style.transform="none"},10);while(fl.children.length>7)fl.removeChild(fl.lastChild)}
 setInterval(feedTick,4000);
+
+/* Fetch live KOL count from API */
+function fetchKolCount(){
+  var el=document.getElementById("kolCount");
+  if(!el)return;
+  var apiBase=window.location.hostname==="sentry-protocol.vercel.app"
+    ?"https://sentry-protocol-production.up.railway.app"
+    :window.location.origin;
+  try{
+    var xhr=new XMLHttpRequest();
+    xhr.open("GET",apiBase+"/v1/kols/count",true);
+    xhr.timeout=5000;
+    xhr.onload=function(){
+      if(xhr.status===200){
+        try{var d=JSON.parse(xhr.responseText);if(d.count)el.textContent=d.count}catch(e){}
+      }
+    };
+    xhr.onerror=function(){el.textContent="50+"};
+    xhr.ontimeout=function(){el.textContent="50+"};
+    xhr.send();
+  }catch(e){el.textContent="50+"}
+}
+fetchKolCount();
+setInterval(fetchKolCount,30000);
 </script>
 </body>
 </html>

@@ -46,6 +46,21 @@ export class IngestionEngine {
     console.log("[INGEST] Stopped");
   }
 
+  async addWallet(address: string): Promise<void> {
+    console.log(`[INGEST] Adding wallet to live monitoring: ${address}`);
+    // If WebSocket is connected, subscribe to the new address
+    if (this.ws && this.ws.readyState === WebSocket.OPEN) {
+      const subscribeMsg = {
+        jsonrpc: "2.0",
+        id: Date.now(),
+        method: "accountSubscribe",
+        params: [address, { encoding: "jsonParsed", commitment: "confirmed" }],
+      };
+      this.ws.send(JSON.stringify(subscribeMsg));
+    }
+    // Polling will pick it up automatically since it reads from kolStore
+  }
+
   // ===========================================
   // WebSocket — Helius Enhanced WebSocket
   // ===========================================
