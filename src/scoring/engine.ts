@@ -7,15 +7,16 @@ import {
 import { config } from "../config";
 import { classifySwapAction } from "../ingestion/parser";
 import { SignalStore } from "../store/signal-store";
+import { priceOracle } from "../oracle/price";
 import { v4 as uuid } from "uuid";
 
 export class ScoringEngine {
   constructor(private signalStore: SignalStore) {}
 
-  score(swap: ParsedSwap, kol: KolProfile): ScoredSignal {
+  async score(swap: ParsedSwap, kol: KolProfile): Promise<ScoredSignal> {
     const { action, token, tokenMint, quoteMint } = classifySwapAction(swap);
 
-    const breakdown = this.computeBreakdown(swap, kol, tokenMint);
+    const breakdown = await this.computeBreakdown(swap, kol, tokenMint);
     const conviction = this.weightedScore(breakdown);
 
     // Find other KOLs trading this token recently (5 min window)
@@ -42,13 +43,13 @@ export class ScoringEngine {
     return signal;
   }
 
-  private computeBreakdown(
+  private async computeBreakdown(
     swap: ParsedSwap,
     kol: KolProfile,
     tokenMint: string
-  ): ConvictionBreakdown {
+  ): Promise<ConvictionBreakdown> {
     return {
-      positionSizeScore: this.scorePositionSize(swap),
+      positionSizeScore: await this.scorePositionSize(swap),
       holdHistoryScore: this.scoreHoldHistory(kol),
       historicalPnlScore: this.scoreHistoricalPnl(kol),
       rugAvoidanceScore: this.scoreRugAvoidance(kol),
@@ -58,37 +59,31 @@ export class ScoringEngine {
 
   /**
    * Position Size Score (weight: 40%)
-   * How significant is this trade relative to typical behavior?
-   * Higher amounts = higher conviction signal.
-   *
-   * We use a logarithmic scale since whale trades vary enormously.
-   * Thresholds calibrated for Solana memecoin/DeFi trades.
+   * Uses live prices from Jupiter Price API.
    */
-  private scorePositionSize(swap: ParsedSwap): number {
-    // Normalize to SOL-equivalent rough estimate
-    // SOL mint = lamports, so divide by 1e9
-    // USDC mint = 6 decimals, divide by 1e6
+  private async scorePositionSize(swap: ParsedSwap): Promise<number> {
     let usdEstimate = 0;
 
     const solMint = "So11111111111111111111111111111111111111112";
     const usdcMint = "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v";
 
     if (swap.inputMint === solMint) {
-      // Rough SOL price estimate — in production, use oracle
-      const solPrice = 170; // hardcoded for MVP, replace with Pyth feed
+      const solPrice = await priceOracle.getSolPrice();
       usdEstimate = (swap.inputAmount / 1e9) * solPrice;
     } else if (swap.inputMint === usdcMint) {
       usdEstimate = swap.inputAmount / 1e6;
+    } else if (swap.outputMint === solMint) {
+      const solPrice = await priceOracle.getSolPrice();
+      usdEstimate = (swap.outputAmount / 1e9) * solPrice;
+    } else if (swap.outputMint === usdcMint) {
+      usdEstimate = swap.outputAmount / 1e6;
     } else {
-      // Unknown input token, estimate based on output
-      if (swap.outputMint === solMint) {
-        const solPrice = 170;
-        usdEstimate = (swap.outputAmount / 1e9) * solPrice;
-      } else if (swap.outputMint === usdcMint) {
-        usdEstimate = swap.outputAmount / 1e6;
+      // Try to price the input token directly
+      const inputPrice = await priceOracle.getPrice(swap.inputMint);
+      if (inputPrice > 0) {
+        usdEstimate = (swap.inputAmount / 1e9) * inputPrice; // assume 9 decimals
       } else {
-        // Can't estimate — give neutral score
-        return 50;
+        return 50; // can't price — neutral
       }
     }
 

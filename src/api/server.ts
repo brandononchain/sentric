@@ -6,6 +6,7 @@ import { SignalStore } from "../store/signal-store";
 import { ScoringEngine } from "../scoring/engine";
 import { IngestionEngine } from "../ingestion/engine";
 import { KolAutoSourcer } from "../sourcing/auto-sourcer";
+import { KolStatsEngine } from "../stats/kol-stats";
 import { x402PaymentGate, devModeBypass } from "./x402";
 import { SignalQuery, ConsensusQuery } from "../types";
 
@@ -314,11 +315,22 @@ export function createServer() {
 
     // Start ingestion if Helius key is available
     if (config.heliusApiKey) {
+      // Step 1: Backfill — pull last 24h of KOL trades and compute real stats
+      const statsEngine = new KolStatsEngine(kolStore, signalStore, scoringEngine);
+      statsEngine.backfillAndComputeStats()
+        .then(() => {
+          console.log(`[STARTUP] Backfill complete. Signal store has ${signalStore.size()} signals.`);
+        })
+        .catch(err => {
+          console.error("[STARTUP] Backfill failed (continuing anyway):", err);
+        });
+
+      // Step 2: Start live ingestion
       ingestionEngine.start().catch((err) => {
         console.error("[FATAL] Ingestion engine failed to start:", err);
       });
 
-      // Start auto-sourcing KOL wallets (every 6 hours)
+      // Step 3: Start auto-sourcing KOL wallets (every 6 hours)
       autoSourcer.start(6 * 60 * 60 * 1000);
     } else {
       console.log(

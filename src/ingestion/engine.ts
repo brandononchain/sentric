@@ -213,10 +213,10 @@ export class IngestionEngine {
   // Transaction Processing
   // ===========================================
 
-  private processTransaction(
+  private async processTransaction(
     tx: HeliusTransaction,
     knownWallet?: string
-  ): void {
+  ): Promise<void> {
     // Deduplicate
     if (this.processedSigs.has(tx.signature)) return;
     this.processedSigs.add(tx.signature);
@@ -241,8 +241,8 @@ export class IngestionEngine {
     const swap = parseHeliusTransaction(tx, wallet);
     if (!swap) return;
 
-    // Score it
-    const signal = this.scoringEngine.score(swap, kol);
+    // Score it (async — uses live price oracle)
+    const signal = await this.scoringEngine.score(swap, kol);
 
     // Store it
     this.signalStore.add(signal);
