@@ -183,7 +183,7 @@ footer{padding:28px 0;border-top:1px solid var(--line)}
     <div class="hero-inner">
       <div class="badge hero-enter"><span class="badge-dot"></span> Solana Frontier Hackathon</div>
       <h1 class="hero-enter">The <em>Bloomberg<br>Terminal</em> for<br>Solana agents</h1>
-      <p class="hero-desc hero-enter">Your agent knows what @ansem just bought before his followers do. One API call returns the highest-conviction KOL trade in the last 60 seconds. $0.001 in USDC. No key, no account.</p>
+      <p class="hero-desc hero-enter">Your agent knows what @theo just bought before his followers do. One API call returns the highest-conviction KOL trade in the last 60 seconds. $0.001 in USDC. No key, no account.</p>
       <div class="hero-btns hero-enter">
         <a href="https://github.com/brandononchain/sentry-protocol" target="_blank" rel="noopener" class="btn-w">Start Building &#8599;</a>
         <a href="#api" class="btn-o">See the API</a>
@@ -203,11 +203,11 @@ footer{padding:28px 0;border-top:1px solid var(--line)}
       <div class="feed-top"><h2>What your agent sees right now</h2><span>LIVE</span></div>
       <div class="feed-list" id="feedList">
         <div class="row"><span class="row-kol">@ansem</span><span class="row-tok">POPCAT / SOL</span><span class="row-act row-buy">BUY</span><span class="row-sc">94</span></div>
-        <div class="row"><span class="row-kol">@hsaka</span><span class="row-tok">WIF / USDC</span><span class="row-act row-buy">BUY</span><span class="row-sc">87</span></div>
-        <div class="row"><span class="row-kol">@degenking</span><span class="row-tok">BONK / SOL</span><span class="row-act row-sell">SELL</span><span class="row-sc">72</span></div>
-        <div class="row"><span class="row-kol">@blknoiz06</span><span class="row-tok">JUP / USDC</span><span class="row-act row-buy">BUY</span><span class="row-sc">91</span></div>
-        <div class="row"><span class="row-kol">@cryptowiz</span><span class="row-tok">RENDER / SOL</span><span class="row-act row-buy">BUY</span><span class="row-sc">83</span></div>
-        <div class="row"><span class="row-kol">@maboroshi</span><span class="row-tok">PYTH / USDC</span><span class="row-act row-sell">SELL</span><span class="row-sc">68</span></div>
+        <div class="row"><span class="row-kol">@Cented</span><span class="row-tok">WIF / USDC</span><span class="row-act row-buy">BUY</span><span class="row-sc">87</span></div>
+        <div class="row"><span class="row-kol">@Letterbomb</span><span class="row-tok">BONK / SOL</span><span class="row-act row-sell">SELL</span><span class="row-sc">72</span></div>
+        <div class="row"><span class="row-kol">@theo</span><span class="row-tok">JUP / USDC</span><span class="row-act row-buy">BUY</span><span class="row-sc">91</span></div>
+        <div class="row"><span class="row-kol">@Nyhrox</span><span class="row-tok">RENDER / SOL</span><span class="row-act row-buy">BUY</span><span class="row-sc">83</span></div>
+        <div class="row"><span class="row-kol">@Leens</span><span class="row-tok">PYTH / USDC</span><span class="row-act row-sell">SELL</span><span class="row-sc">68</span></div>
       </div>
     </div>
   </section>
@@ -242,7 +242,7 @@ footer{padding:28px 0;border-top:1px solid var(--line)}
 
 <span class="cm">// Response</span>
 {
-  <span class="st">"kol"</span>: <span class="st">"@ansem"</span>,
+  <span class="st">"kol"</span>: <span class="st">"@theo"</span>,
   <span class="st">"action"</span>: <span class="st">"BUY"</span>,
   <span class="st">"token"</span>: <span class="st">"POPCAT"</span>,
   <span class="st">"mint"</span>: <span class="st">"7GCihgDB8fe6KNjn2MYtkzZcRjQy3t9GHdC8uHYmW2hr"</span>,
@@ -319,7 +319,7 @@ if("IntersectionObserver" in window){
   var obs=new IntersectionObserver(function(ents){for(var k=0;k<ents.length;k++){if(ents[k].isIntersecting){ents[k].target.classList.add("show");obs.unobserve(ents[k].target)}}},{threshold:0.05,rootMargin:"0px 0px -20px 0px"});
   var rv=document.querySelectorAll(".reveal");for(var k=0;k<rv.length;k++)obs.observe(rv[k]);
 }else{var all=document.querySelectorAll(".reveal");for(var k=0;k<all.length;k++)all[k].classList.add("show")}
-var KOLS=["@ansem","@hsaka","@blknoiz06","@degenking","@cryptowiz","@maboroshi","@trader_xy","@soljakey","@moondev","@0xSun"];
+var KOLS=["@theo","@theo","@Nyhrox","@Cented","@Cupsey","@Letterbomb","@Leens","@chester","@Walta","@Publix","@Brox","@Smokez","@Jijo","@zeropnl","@Hesi","@Scharo","@Pullup","@Kadenox","@Qavec","@Naruza","@Trey","@Gfree","@Pain","@Trenchman","@MrFrog","@Limfork","@milito","@Heyitsyolo","@Felix","@Numer0"];
 var TOKS=["POPCAT/SOL","WIF/USDC","BONK/SOL","JUP/USDC","RENDER/SOL","PYTH/USDC","RAY/SOL","ORCA/USDC"];
 var SIDES=["BUY","BUY","BUY","SELL","BUY"];
 function feedTick(){var fl=document.getElementById("feedList");if(!fl)return;var kol=KOLS[Math.floor(Math.random()*KOLS.length)];var tok=TOKS[Math.floor(Math.random()*TOKS.length)];var side=SIDES[Math.floor(Math.random()*SIDES.length)];var sc=70+Math.floor(Math.random()*30);var r=document.createElement("div");r.className="row";r.innerHTML='<span class="row-kol">'+kol+'</span><span class="row-tok">'+tok+'</span><span class="row-act '+(side==="BUY"?"row-buy":"row-sell")+'">'+side+'</span><span class="row-sc">'+sc+'</span>';r.style.opacity="0";r.style.transform="translateY(6px)";fl.insertBefore(r,fl.firstChild);setTimeout(function(){r.style.transition="opacity .3s,transform .3s";r.style.opacity="1";r.style.transform="none"},10);while(fl.children.length>7)fl.removeChild(fl.lastChild)}
