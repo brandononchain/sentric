@@ -202,12 +202,7 @@ footer{padding:28px 0;border-top:1px solid var(--line)}
     <div class="feed-box reveal">
       <div class="feed-top"><h2>What your agent sees right now</h2><span>LIVE</span></div>
       <div class="feed-list" id="feedList">
-        <div class="row"><span class="row-kol">@ansem</span><span class="row-tok">POPCAT / SOL</span><span class="row-act row-buy">BUY</span><span class="row-sc">94</span></div>
-        <div class="row"><span class="row-kol">@Cented</span><span class="row-tok">WIF / USDC</span><span class="row-act row-buy">BUY</span><span class="row-sc">87</span></div>
-        <div class="row"><span class="row-kol">@Letterbomb</span><span class="row-tok">BONK / SOL</span><span class="row-act row-sell">SELL</span><span class="row-sc">72</span></div>
-        <div class="row"><span class="row-kol">@theo</span><span class="row-tok">JUP / USDC</span><span class="row-act row-buy">BUY</span><span class="row-sc">91</span></div>
-        <div class="row"><span class="row-kol">@Nyhrox</span><span class="row-tok">RENDER / SOL</span><span class="row-act row-buy">BUY</span><span class="row-sc">83</span></div>
-        <div class="row"><span class="row-kol">@Leens</span><span class="row-tok">PYTH / USDC</span><span class="row-act row-sell">SELL</span><span class="row-sc">68</span></div>
+        <div class="row" style="color:var(--dim);justify-content:center;text-align:center"><span>Loading live signals...</span></div>
       </div>
     </div>
   </section>
@@ -319,11 +314,67 @@ if("IntersectionObserver" in window){
   var obs=new IntersectionObserver(function(ents){for(var k=0;k<ents.length;k++){if(ents[k].isIntersecting){ents[k].target.classList.add("show");obs.unobserve(ents[k].target)}}},{threshold:0.05,rootMargin:"0px 0px -20px 0px"});
   var rv=document.querySelectorAll(".reveal");for(var k=0;k<rv.length;k++)obs.observe(rv[k]);
 }else{var all=document.querySelectorAll(".reveal");for(var k=0;k<all.length;k++)all[k].classList.add("show")}
-var KOLS=["@theo","@theo","@Nyhrox","@Cented","@Cupsey","@Letterbomb","@Leens","@chester","@Walta","@Publix","@Brox","@Smokez","@Jijo","@zeropnl","@Hesi","@Scharo","@Pullup","@Kadenox","@Qavec","@Naruza","@Trey","@Gfree","@Pain","@Trenchman","@MrFrog","@Limfork","@milito","@Heyitsyolo","@Felix","@Numer0"];
-var TOKS=["POPCAT/SOL","WIF/USDC","BONK/SOL","JUP/USDC","RENDER/SOL","PYTH/USDC","RAY/SOL","ORCA/USDC"];
-var SIDES=["BUY","BUY","BUY","SELL","BUY"];
-function feedTick(){var fl=document.getElementById("feedList");if(!fl)return;var kol=KOLS[Math.floor(Math.random()*KOLS.length)];var tok=TOKS[Math.floor(Math.random()*TOKS.length)];var side=SIDES[Math.floor(Math.random()*SIDES.length)];var sc=70+Math.floor(Math.random()*30);var r=document.createElement("div");r.className="row";r.innerHTML='<span class="row-kol">'+kol+'</span><span class="row-tok">'+tok+'</span><span class="row-act '+(side==="BUY"?"row-buy":"row-sell")+'">'+side+'</span><span class="row-sc">'+sc+'</span>';r.style.opacity="0";r.style.transform="translateY(6px)";fl.insertBefore(r,fl.firstChild);setTimeout(function(){r.style.transition="opacity .3s,transform .3s";r.style.opacity="1";r.style.transform="none"},10);while(fl.children.length>7)fl.removeChild(fl.lastChild)}
-setInterval(feedTick,4000);
+var API="https://sentric-production.up.railway.app";
+var lastSignalTs=0;
+
+function renderSignals(signals){
+  var fl=document.getElementById("feedList");
+  if(!fl||!signals||signals.length===0)return;
+  fl.innerHTML="";
+  for(var i=0;i<Math.min(signals.length,7);i++){
+    var s=signals[i];
+    var kol=s.kol?s.kol.label||s.kol.address.slice(0,8):"unknown";
+    var token=s.token||s.tokenMint.slice(0,6);
+    var action=s.action||"BUY";
+    var score=s.conviction||0;
+    var r=document.createElement("div");
+    r.className="row";
+    r.innerHTML='<span class="row-kol">'+kol+'</span><span class="row-tok">'+token+'</span><span class="row-act '+(action==="BUY"?"row-buy":"row-sell")+'">'+action+'</span><span class="row-sc">'+score+'</span>';
+    fl.appendChild(r);
+  }
+  if(signals.length>0&&signals[0].timestamp){lastSignalTs=signals[0].timestamp}
+}
+
+function fetchSignals(){
+  try{
+    var xhr=new XMLHttpRequest();
+    // Dev mode endpoint — no payment needed
+    xhr.open("GET",API+"/v1/signals?limit=7",true);
+    xhr.setRequestHeader("x-payment","sentric-landing-page-preview");
+    xhr.timeout=8000;
+    xhr.onload=function(){
+      if(xhr.status===200){
+        try{
+          var d=JSON.parse(xhr.responseText);
+          if(d.signals&&d.signals.length>0){renderSignals(d.signals)}
+          else{showEmpty()}
+        }catch(e){showEmpty()}
+      }else if(xhr.status===402){
+        // API is live but requires payment — show that it's working
+        showPaywall();
+      }else{showEmpty()}
+    };
+    xhr.onerror=function(){showEmpty()};
+    xhr.ontimeout=function(){showEmpty()};
+    xhr.send();
+  }catch(e){showEmpty()}
+}
+
+function showEmpty(){
+  var fl=document.getElementById("feedList");
+  if(!fl)return;
+  fl.innerHTML='<div class="row" style="color:var(--dim);text-align:center;display:block;padding:16px 14px;font-size:10px">Waiting for KOL trades — signals appear here in real-time when tracked wallets swap on Jupiter, Raydium, or Meteora</div>';
+}
+
+function showPaywall(){
+  var fl=document.getElementById("feedList");
+  if(!fl)return;
+  fl.innerHTML='<div class="row" style="color:var(--green2);text-align:center;display:block;padding:16px 14px;font-size:10px">API is live — signals available via x402 micropayment ($0.001 USDC)</div>';
+}
+
+// Fetch immediately, then poll every 10s
+fetchSignals();
+setInterval(fetchSignals,10000);
 
 /* Fetch live KOL count from API */
 function fetchKolCount(){
