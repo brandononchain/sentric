@@ -20,6 +20,14 @@ export class SignalStore {
     }
   }
 
+  /** Return all live signals (newest first) — used by the X monitor to
+   *  cross-reference tweets against recent on-chain buys. */
+  getAll(): ScoredSignal[] {
+    return Array.from(this.signals.values()).sort(
+      (a, b) => b.timestamp - a.timestamp
+    );
+  }
+
   query(q: SignalQuery): ScoredSignal[] {
     const now = Date.now();
     const maxAgeMs = (q.maxAge || config.signalTtlSeconds) * 1000;

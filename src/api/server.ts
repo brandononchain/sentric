@@ -7,6 +7,7 @@ import { ScoringEngine } from "../scoring/engine";
 import { IngestionEngine } from "../ingestion/engine";
 import { KolAutoSourcer } from "../sourcing/auto-sourcer";
 import { KolStatsEngine } from "../stats/kol-stats";
+import { XMonitor } from "../social/x-monitor";
 import { x402PaymentGate, devModeBypass } from "./x402";
 import { SignalQuery, ConsensusQuery } from "../types";
 
@@ -21,6 +22,7 @@ export function createServer() {
   const kolStore = new KolStore();
   const signalStore = new SignalStore();
   const scoringEngine = new ScoringEngine(signalStore);
+  const xMonitor = new XMonitor(kolStore, signalStore);
   const ingestionEngine = new IngestionEngine(
     kolStore,
     scoringEngine,
@@ -225,6 +227,33 @@ export function createServer() {
   );
 
   // =========================================
+  // Social signals (x402 gated) — the EARLIEST signal
+  // A KOL tweeting a token before/as they buy. "alpha" = tweet only,
+  // "confirmed" = tweet matched to an on-chain buy.
+  // =========================================
+
+  app.get(
+    "/v1/signals/social",
+    x402PaymentGate({ priceUsdc: config.signalPriceUsdc }),
+    (req: Request, res: Response) => {
+      const priority = req.query.priority as "alpha" | "confirmed" | undefined;
+      const limit = req.query.limit
+        ? parseInt(req.query.limit as string)
+        : 50;
+
+      const signals = xMonitor.getSocialSignals({ priority, limit });
+
+      res.json({
+        signals,
+        count: signals.length,
+        provider: xMonitor.getProviderName(),
+        enabled: xMonitor.isEnabled(),
+        payment: (req as any).x402,
+      });
+    }
+  );
+
+  // =========================================
   // Signal Stats (free — for dashboard/monitoring)
   // =========================================
 
@@ -337,12 +366,25 @@ export function createServer() {
         "[INFO] No HELIUS_API_KEY — ingestion and auto-sourcing disabled.\n"
       );
     }
+
+    // Step 4: Start X social monitor (independent of Helius — needs a
+    // social provider configured). This is the earliest-signal layer.
+    if (xMonitor.isEnabled()) {
+      xMonitor.start().catch((err) => {
+        console.error("[X-MONITOR] Failed to start:", err);
+      });
+    } else {
+      console.log(
+        "[INFO] No SOCIAL_PROVIDER configured — X monitoring disabled.\n"
+      );
+    }
   });
 
   // Graceful shutdown
   process.on("SIGTERM", () => {
     console.log("[SHUTDOWN] Received SIGTERM");
     ingestionEngine.stop();
+    xMonitor.stop();
     signalStore.destroy();
     server.close();
   });
@@ -350,12 +392,13 @@ export function createServer() {
   process.on("SIGINT", () => {
     console.log("[SHUTDOWN] Received SIGINT");
     ingestionEngine.stop();
+    xMonitor.stop();
     signalStore.destroy();
     server.close();
     process.exit(0);
   });
 
-  return { app, server, kolStore, signalStore, scoringEngine, ingestionEngine };
+  return { app, server, kolStore, signalStore, scoringEngine, ingestionEngine, xMonitor };
 }
 
 // Sanitize signal for API response (strip internal data)

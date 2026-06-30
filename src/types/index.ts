@@ -11,6 +11,13 @@ export interface KolProfile {
   rugAvoidanceRate: number; // 0-1
   totalTrackedTrades: number;
   addedAt: number; // timestamp
+
+  // === X / social enrichment (optional) ===
+  xHandle?: string; // real X handle, may differ from label (e.g. @ansem -> blknoiz06)
+  xUserId?: string; // resolved X numeric user id
+  followerCount?: number; // X follower count
+  verified?: boolean; // X verified / blue check
+  socialCredibility?: number; // 0-1 multiplier derived from followers + verification
 }
 
 export interface ParsedSwap {
@@ -147,4 +154,54 @@ export interface PaymentTerms {
   amount: string; // in base units
   recipient: string; // Sentric treasury wallet
   network: string; // "solana:mainnet" or "solana:devnet"
+}
+
+// ===================================================
+// Social (X / Twitter) types
+// ===================================================
+
+// A token reference extracted from tweet text
+export interface ExtractedToken {
+  type: "contract" | "cashtag" | "link"; // how it was found
+  value: string; // the mint address (for contract/link) or ticker (for cashtag)
+  raw: string; // the original matched text
+  mint?: string; // resolved mint address if known
+}
+
+// A single post pulled from X
+export interface SocialPost {
+  id: string; // tweet id
+  authorHandle: string;
+  authorId: string;
+  text: string;
+  createdAt: number; // ms timestamp
+  url: string;
+  extractedTokens: ExtractedToken[];
+}
+
+// X profile snapshot for a KOL
+export interface SocialProfile {
+  handle: string;
+  userId: string;
+  followers: number;
+  verified: boolean;
+  accountCreatedAt: number;
+}
+
+// A signal derived from a KOL's tweet — the EARLIEST possible signal
+export interface SocialSignal {
+  id: string;
+  kolAddress: string; // links back to the on-chain KOL profile
+  kolLabel: string;
+  xHandle: string;
+  tweetId: string;
+  tweetUrl: string;
+  text: string;
+  tokens: ExtractedToken[]; // tokens mentioned in the tweet
+  timestamp: number; // when the tweet was posted
+  detectedAt: number; // when Sentric saw it
+  latencyMs: number; // detectedAt - timestamp (how early we caught it)
+  matchedOnChain: boolean; // did this KOL also buy one of these tokens on-chain?
+  onChainSignalId?: string; // link to the confirming ScoredSignal if matched
+  priority: "alpha" | "confirmed"; // alpha = tweet only, confirmed = tweet + on-chain
 }

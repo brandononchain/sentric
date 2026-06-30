@@ -24,6 +24,16 @@ export const config = {
   signalTtlSeconds: parseInt(process.env.SIGNAL_TTL_SECONDS || "300"), // 5 min default
   maxSignalsInMemory: parseInt(process.env.MAX_SIGNALS || "10000"),
 
+  // === Social / X enrichment ===
+  // SOCIAL_PROVIDER: "x" (official API), "socialdata" (3rd-party), or "none"
+  socialProvider: process.env.SOCIAL_PROVIDER || "none",
+  xBearerToken: process.env.X_BEARER_TOKEN || "",
+  socialDataApiKey: process.env.SOCIALDATA_API_KEY || "",
+  // Tiered poll intervals (ms) — controls cost. S=fast, A=mid, B/C=slow.
+  socialFastPollMs: parseInt(process.env.SOCIAL_FAST_POLL_MS || "15000"),   // 15s
+  socialMidPollMs: parseInt(process.env.SOCIAL_MID_POLL_MS || "60000"),     // 60s
+  socialSlowPollMs: parseInt(process.env.SOCIAL_SLOW_POLL_MS || "300000"),  // 5m
+
   // Scoring weights
   scoring: {
     positionSizeWeight: 0.40,
