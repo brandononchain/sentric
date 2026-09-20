@@ -8,7 +8,7 @@ Sentric watches a configurable Solana wallet list and exposes scored swaps, same
 
 ## Run locally
 
-Requires Node.js **22.12 or newer**.
+Requires Node.js **22.x**. The repository pins Node 22 for Railway/Nixpacks reproducibility.
 
 ```sh
 git clone https://github.com/brandononchain/sentric.git
