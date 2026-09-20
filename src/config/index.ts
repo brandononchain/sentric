@@ -1,22 +1,33 @@
 import dotenv from "dotenv";
-dotenv.config();
+dotenv.config({ quiet: true });
 
 export const config = {
   // Helius
   heliusApiKey: process.env.HELIUS_API_KEY || "",
-  heliusRpcUrl: process.env.HELIUS_RPC_URL || "https://api.mainnet-beta.solana.com",
+  heliusRpcUrl:
+    process.env.HELIUS_RPC_URL || "https://api.mainnet-beta.solana.com",
   heliusWsUrl: process.env.HELIUS_WS_URL || "",
 
   // Server
   port: parseInt(process.env.PORT || "3000"),
   host: process.env.HOST || "0.0.0.0",
 
-  // Redis (optional — falls back to in-memory)
-  redisUrl: process.env.REDIS_URL || "",
+  devMode:
+    (process.env.SENTRIC_DEV_MODE || process.env.SENTRY_DEV_MODE) === "true",
+  adminApiKey: process.env.ADMIN_API_KEY || "",
+  dataDir: process.env.DATA_DIR || "",
+  autoDiscovery: process.env.AUTO_DISCOVERY === "true",
+  backfill: process.env.BACKFILL_ON_START === "true",
+  jupiterApiKey: process.env.JUPITER_API_KEY || "",
+  facilitatorUrl: process.env.X402_FACILITATOR_URL || "",
+  facilitatorToken: process.env.X402_FACILITATOR_TOKEN || "",
+  paymentNetwork:
+    process.env.X402_NETWORK || "solana:EtWTRABZaYq6iMfeYKouRu166VU2xqa1",
 
   // x402 / Payment
   treasuryWallet: process.env.TREASURY_WALLET || "",
-  usdcMint: process.env.USDC_MINT || "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v", // mainnet USDC
+  usdcMint:
+    process.env.USDC_MINT || "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v", // mainnet USDC
   signalPriceUsdc: parseFloat(process.env.SIGNAL_PRICE_USDC || "0.001"),
   consensusPriceUsdc: parseFloat(process.env.CONSENSUS_PRICE_USDC || "0.005"),
 
@@ -30,27 +41,27 @@ export const config = {
   xBearerToken: process.env.X_BEARER_TOKEN || "",
   socialDataApiKey: process.env.SOCIALDATA_API_KEY || "",
   // Tiered poll intervals (ms) — controls cost. S=fast, A=mid, B/C=slow.
-  socialFastPollMs: parseInt(process.env.SOCIAL_FAST_POLL_MS || "15000"),   // 15s
-  socialMidPollMs: parseInt(process.env.SOCIAL_MID_POLL_MS || "60000"),     // 60s
-  socialSlowPollMs: parseInt(process.env.SOCIAL_SLOW_POLL_MS || "300000"),  // 5m
+  socialFastPollMs: parseInt(process.env.SOCIAL_FAST_POLL_MS || "15000"), // 15s
+  socialMidPollMs: parseInt(process.env.SOCIAL_MID_POLL_MS || "60000"), // 60s
+  socialSlowPollMs: parseInt(process.env.SOCIAL_SLOW_POLL_MS || "300000"), // 5m
 
   // Scoring weights
   scoring: {
-    positionSizeWeight: 0.40,
-    holdHistoryWeight: 0.20,
+    positionSizeWeight: 0.4,
+    holdHistoryWeight: 0.2,
     historicalPnlWeight: 0.15,
     rugAvoidanceWeight: 0.15,
-    consensusWeight: 0.10,
+    consensusWeight: 0.1,
   },
 
   // Well-known mints (used to classify BUY vs SELL)
   stableAndBaseMints: new Set([
     "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v", // USDC
     "Es9vMFrzaCERmJfrF4H2FYD4KCoNkY11McCe8BenwNYB", // USDT
-    "So11111111111111111111111111111111111111112",      // wSOL
-    "mSoLzYCxHdYgdzU16g5QSh3i5K3z3KZK7ytfqcJm7So",   // mSOL
+    "So11111111111111111111111111111111111111112", // wSOL
+    "mSoLzYCxHdYgdzU16g5QSh3i5K3z3KZK7ytfqcJm7So", // mSOL
     "J1toso1uCk3RLmjorhTtrVwY9HJ7X8V9yYac6Y7kGCPn", // JitoSOL
-    "jupSoLaHXQiZZTSfEWMTRRgpnyFm8f6sZdosWBjx93v",   // JupSOL
+    "jupSoLaHXQiZZTSfEWMTRRgpnyFm8f6sZdosWBjx93v", // JupSOL
     "7dHbWXmci3dT8UFYWYZweBLXgycu7Y3iL6trKn1Y7ARj", // stSOL
   ]),
 };
@@ -59,6 +70,20 @@ export const config = {
 export function validateConfig(): string[] {
   const errors: string[] = [];
   if (!config.heliusApiKey) errors.push("HELIUS_API_KEY is required");
-  if (!config.treasuryWallet) errors.push("TREASURY_WALLET is required for x402 payments");
+  if (!config.treasuryWallet)
+    errors.push("TREASURY_WALLET is required for x402 payments");
+  if (config.devMode && process.env.NODE_ENV === "production")
+    errors.push("Development payment bypass is forbidden in production");
+  for (const [name, value] of Object.entries({
+    port: config.port,
+    signalTtlSeconds: config.signalTtlSeconds,
+    maxSignalsInMemory: config.maxSignalsInMemory,
+    socialFastPollMs: config.socialFastPollMs,
+    socialMidPollMs: config.socialMidPollMs,
+    socialSlowPollMs: config.socialSlowPollMs,
+  })) {
+    if (!Number.isInteger(value) || value <= 0)
+      errors.push(`${name} must be a positive integer`);
+  }
   return errors;
 }

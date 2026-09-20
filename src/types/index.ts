@@ -13,6 +13,7 @@ export interface KolProfile {
   addedAt: number; // timestamp
 
   // === X / social enrichment (optional) ===
+  metricsSource?: "unknown" | "operator";
   xHandle?: string; // real X handle, may differ from label (e.g. @ansem -> blknoiz06)
   xUserId?: string; // resolved X numeric user id
   followerCount?: number; // X follower count
@@ -27,6 +28,8 @@ export interface ParsedSwap {
   programId: string;
   inputMint: string;
   outputMint: string;
+  inputDecimals?: number;
+  outputDecimals?: number;
   inputAmount: number; // raw lamports / token units
   outputAmount: number;
   inputSymbol?: string;
@@ -74,6 +77,7 @@ export interface ConsensusQuery {
 }
 
 export interface ConsensusSignal {
+  action: "BUY" | "SELL";
   token: string;
   tokenMint: string;
   kols: Array<{
@@ -91,6 +95,7 @@ export interface ConsensusSignal {
 
 // Helius Enhanced Transaction types (subset)
 export interface HeliusTransaction {
+  transactionError?: unknown;
   signature: string;
   timestamp: number;
   slot: number;

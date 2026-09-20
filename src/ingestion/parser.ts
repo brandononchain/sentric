@@ -1,204 +1,153 @@
 import { HeliusTransaction, ParsedSwap } from "../types";
 import { config } from "../config";
 
-// Well-known program IDs for DEX protocols
-const JUPITER_V6 = "JUP6LkbZbjS1jKKwapdHNy74zcZ3tLUZoi5QNyVTaV4";
-const JUPITER_V4 = "JUP4Fb2cqiRUcaTHdrPC8h2gNsA2ETXiPDD33WcGuJB";
-const RAYDIUM_AMM = "675kPX9MHTjS2zt1qfr1NYHuzeLXfQM9H24wFSUt1Mp8";
-const RAYDIUM_CLMM = "CAMMCzo5YL8w4VFF8KVHrK22GGUsp5VTaW7grrKgrWqK";
-const ORCA_WHIRLPOOL = "whirLbMiicVdio4qvUfM5KAg6Ct8VwpYzGff3uctyCc";
-const METEORA_DLMM = "LBUZKhRxPF3XUpBCjp4YzTKgLccjZhTSDM9YuVaPwxo";
-
-const DEX_PROGRAMS = new Set([
-  JUPITER_V6,
-  JUPITER_V4,
-  RAYDIUM_AMM,
-  RAYDIUM_CLMM,
-  ORCA_WHIRLPOOL,
-  METEORA_DLMM,
-]);
-
-// Known token symbols for display
-const KNOWN_TOKENS: Record<string, string> = {
+const SOL = "So11111111111111111111111111111111111111112";
+const SYMBOLS: Record<string, string> = {
+  [SOL]: "SOL",
   EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v: "USDC",
   Es9vMFrzaCERmJfrF4H2FYD4KCoNkY11McCe8BenwNYB: "USDT",
-  So11111111111111111111111111111111111111112: "SOL",
-  mSoLzYCxHdYgdzU16g5QSh3i5K3z3KZK7ytfqcJm7So: "mSOL",
-  J1toso1uCk3RLmjorhTtrVwY9HJ7X8V9yYac6Y7kGCPn: "JitoSOL",
-  jupSoLaHXQiZZTSfEWMTRRgpnyFm8f6sZdosWBjx93v: "JupSOL",
-  DezXAZ8z7PnrnRJjz3wXBoRgixCa6xjnB7YaB1pPB263: "BONK",
-  EKpQGSJtjMFqKZ9KQanSqYXRcF8fBopzLHYxdM65zcjm: "WIF",
-  "7GCihgDB8fe6KNjn2MYtkzZcRjQy3t9GHdC8uHYmW2hr": "POPCAT",
-  HZ1JovNiVvGrGNiiYvEozEVgZ58xaU3RKwX8eACQBCt3: "PYTH",
-  JUPyiwrYJFskUPiHa7hkeR8VUtAeFoSYbKedZNsDvCN: "JUP",
-  orcaEKTdK7LKz57vaAYr9QeNsVEPfiu6QeMU1kektZE: "ORCA",
-  "4k3Dyjzvzp8eMZWUXbBCjEvwSkkk59S5iCNLY3QrkX6R": "RAY",
-  DriFtupJYLTosbwoN8koMbEYSx54aFAVLddWsbksjwg7: "DRIFT",
-  jtojtomepa8beP8AuQc6eXt5FriJwfFMwQx2v2f9mCL: "JTO",
-  rndrizKT3MK1iimdxRdWabcF7Zg7AR5T4nud4EkHBof: "RENDER",
 };
 
+/** Parse only successful swaps attributable to the watched wallet.
+ * Ambiguous multi-asset and token-to-token routes are intentionally excluded.
+ * Amounts remain raw units; decimals travel with them for valuation.
+ */
 export function parseHeliusTransaction(
   tx: HeliusTransaction,
-  watchedWallet: string
+  wallet: string,
 ): ParsedSwap | null {
-  // Strategy 1: Use Helius swap event (most reliable)
-  if (tx.events?.swap) {
-    return parseSwapEvent(tx, watchedWallet);
+  if (
+    tx.transactionError ||
+    tx.type !== "SWAP" ||
+    !tx.signature ||
+    !Number.isFinite(tx.timestamp)
+  )
+    return null;
+  type Leg = { mint: string; amount: number; decimals: number };
+  let inputs: Leg[] = [],
+    outputs: Leg[] = [];
+  const event = tx.events?.swap;
+  if (event) {
+    if (event.nativeInput?.account === wallet)
+      inputs.push({
+        mint: SOL,
+        amount: Number(event.nativeInput.amount),
+        decimals: 9,
+      });
+    if (event.nativeOutput?.account === wallet)
+      outputs.push({
+        mint: SOL,
+        amount: Number(event.nativeOutput.amount),
+        decimals: 9,
+      });
+    for (const leg of event.tokenInputs || []) {
+      if (leg.userAccount === wallet)
+        inputs.push({
+          mint: leg.mint,
+          amount: Number(leg.rawTokenAmount.tokenAmount),
+          decimals: leg.rawTokenAmount.decimals,
+        });
+    }
+    for (const leg of event.tokenOutputs || []) {
+      if (leg.userAccount === wallet)
+        outputs.push({
+          mint: leg.mint,
+          amount: Number(leg.rawTokenAmount.tokenAmount),
+          decimals: leg.rawTokenAmount.decimals,
+        });
+    }
+  } else {
+    // SPL balance changes usually live under token accounts, not the wallet account.
+    const changes = new Map<string, Leg>();
+    for (const account of tx.accountData || []) {
+      for (const change of account.tokenBalanceChanges || []) {
+        if (change.userAccount !== wallet) continue;
+        const previous = changes.get(change.mint);
+        changes.set(change.mint, {
+          mint: change.mint,
+          amount:
+            (previous?.amount || 0) + Number(change.rawTokenAmount.tokenAmount),
+          decimals: change.rawTokenAmount.decimals,
+        });
+      }
+    }
+    for (const change of changes.values()) {
+      if (change.amount < 0) inputs.push({ ...change, amount: -change.amount });
+      if (change.amount > 0) outputs.push(change);
+    }
+    // Native transfers exclude the fee/rent-only balance deltas that can mimic buys.
+    const nativeDelta = (tx.nativeTransfers || []).reduce(
+      (sum, t) =>
+        sum +
+        (t.toUserAccount === wallet ? t.amount : 0) -
+        (t.fromUserAccount === wallet ? t.amount : 0),
+      0,
+    );
+    if (nativeDelta < 0 && inputs.length === 0)
+      inputs.push({ mint: SOL, amount: -nativeDelta, decimals: 9 });
+    if (nativeDelta > 0 && outputs.length === 0)
+      outputs.push({ mint: SOL, amount: nativeDelta, decimals: 9 });
   }
-
-  // Strategy 2: Parse token balance changes for the wallet
-  return parseFromBalanceChanges(tx, watchedWallet);
-}
-
-function parseSwapEvent(
-  tx: HeliusTransaction,
-  wallet: string
-): ParsedSwap | null {
-  const swap = tx.events!.swap!;
-
-  let inputMint = "";
-  let outputMint = "";
-  let inputAmount = 0;
-  let outputAmount = 0;
-
-  // Handle native SOL input
-  if (swap.nativeInput && parseInt(swap.nativeInput.amount) > 0) {
-    inputMint = "So11111111111111111111111111111111111111112";
-    inputAmount = parseInt(swap.nativeInput.amount);
-  }
-
-  // Handle token inputs
-  if (swap.tokenInputs && swap.tokenInputs.length > 0) {
-    const tokenIn = swap.tokenInputs[0];
-    inputMint = tokenIn.mint;
-    inputAmount = parseInt(tokenIn.rawTokenAmount.tokenAmount);
-  }
-
-  // Handle native SOL output
-  if (swap.nativeOutput && parseInt(swap.nativeOutput.amount) > 0) {
-    outputMint = "So11111111111111111111111111111111111111112";
-    outputAmount = parseInt(swap.nativeOutput.amount);
-  }
-
-  // Handle token outputs
-  if (swap.tokenOutputs && swap.tokenOutputs.length > 0) {
-    const tokenOut = swap.tokenOutputs[0];
-    outputMint = tokenOut.mint;
-    outputAmount = parseInt(tokenOut.rawTokenAmount.tokenAmount);
-  }
-
-  if (!inputMint || !outputMint) return null;
-
-  return {
-    signature: tx.signature,
-    wallet,
-    timestamp: tx.timestamp * 1000,
-    programId: tx.source || JUPITER_V6,
-    inputMint,
-    outputMint,
-    inputAmount,
-    outputAmount,
-    inputSymbol: KNOWN_TOKENS[inputMint] || inputMint.slice(0, 6),
-    outputSymbol: KNOWN_TOKENS[outputMint] || outputMint.slice(0, 6),
-    slot: tx.slot,
+  const combine = (legs: Leg[]) => {
+    const grouped = new Map<string, Leg>();
+    for (const leg of legs)
+      grouped.set(leg.mint, {
+        ...leg,
+        amount: (grouped.get(leg.mint)?.amount || 0) + leg.amount,
+      });
+    return [...grouped.values()];
   };
-}
-
-function parseFromBalanceChanges(
-  tx: HeliusTransaction,
-  wallet: string
-): ParsedSwap | null {
-  // Find the account data for our watched wallet
-  const walletData = tx.accountData?.find((a) => a.account === wallet);
-  if (!walletData) return null;
-
-  const changes = walletData.tokenBalanceChanges;
-  if (!changes || changes.length < 2) return null;
-
-  // Find what went out (negative) and what came in (positive)
-  let inputMint = "";
-  let outputMint = "";
-  let inputAmount = 0;
-  let outputAmount = 0;
-
-  for (const change of changes) {
-    const amount = parseInt(change.rawTokenAmount.tokenAmount);
-    if (amount < 0) {
-      inputMint = change.mint;
-      inputAmount = Math.abs(amount);
-    } else if (amount > 0) {
-      outputMint = change.mint;
-      outputAmount = amount;
-    }
-  }
-
-  // Also check native SOL balance change
-  if (walletData.nativeBalanceChange !== 0) {
-    const solMint = "So11111111111111111111111111111111111111112";
-    if (walletData.nativeBalanceChange < 0 && !inputMint) {
-      inputMint = solMint;
-      inputAmount = Math.abs(walletData.nativeBalanceChange);
-    } else if (walletData.nativeBalanceChange > 0 && !outputMint) {
-      outputMint = solMint;
-      outputAmount = walletData.nativeBalanceChange;
-    }
-  }
-
-  if (!inputMint || !outputMint) return null;
-
+  inputs = combine(inputs);
+  outputs = combine(outputs);
+  if (inputs.length !== 1 || outputs.length !== 1) return null;
+  const input = inputs[0],
+    output = outputs[0];
+  if (
+    ![input, output].every(
+      (l) =>
+        Number.isFinite(l.amount) &&
+        l.amount > 0 &&
+        Number.isInteger(l.decimals) &&
+        l.decimals >= 0 &&
+        l.decimals <= 18,
+    )
+  )
+    return null;
+  if (
+    config.stableAndBaseMints.has(input.mint) ===
+    config.stableAndBaseMints.has(output.mint)
+  )
+    return null;
   return {
     signature: tx.signature,
     wallet,
     timestamp: tx.timestamp * 1000,
     programId: tx.source || "unknown",
-    inputMint,
-    outputMint,
-    inputAmount,
-    outputAmount,
-    inputSymbol: KNOWN_TOKENS[inputMint] || inputMint.slice(0, 6),
-    outputSymbol: KNOWN_TOKENS[outputMint] || outputMint.slice(0, 6),
+    inputMint: input.mint,
+    outputMint: output.mint,
+    inputAmount: input.amount,
+    outputAmount: output.amount,
+    inputDecimals: input.decimals,
+    outputDecimals: output.decimals,
+    inputSymbol: SYMBOLS[input.mint] || input.mint.slice(0, 6),
+    outputSymbol: SYMBOLS[output.mint] || output.mint.slice(0, 6),
     slot: tx.slot,
   };
 }
 
-/**
- * Determine if this is a BUY or SELL of a non-stable token.
- * BUY = spending SOL/USDC/stables to acquire a token
- * SELL = spending a token to acquire SOL/USDC/stables
- */
-export function classifySwapAction(
-  swap: ParsedSwap
-): { action: "BUY" | "SELL"; token: string; tokenMint: string; quoteMint: string } {
-  const inputIsStable = config.stableAndBaseMints.has(swap.inputMint);
-  const outputIsStable = config.stableAndBaseMints.has(swap.outputMint);
-
-  if (inputIsStable && !outputIsStable) {
-    // Spending stables to get a token = BUY
-    return {
-      action: "BUY",
-      token: swap.outputSymbol || swap.outputMint.slice(0, 6),
-      tokenMint: swap.outputMint,
-      quoteMint: swap.inputMint,
-    };
-  }
-
-  if (!inputIsStable && outputIsStable) {
-    // Selling a token for stables = SELL
-    return {
-      action: "SELL",
-      token: swap.inputSymbol || swap.inputMint.slice(0, 6),
-      tokenMint: swap.inputMint,
-      quoteMint: swap.outputMint,
-    };
-  }
-
-  // Both non-stable or both stable — classify by convention
-  // Treat input as the token being sold
+export function classifySwapAction(swap: ParsedSwap): {
+  action: "BUY" | "SELL";
+  token: string;
+  tokenMint: string;
+  quoteMint: string;
+} {
+  const buy = config.stableAndBaseMints.has(swap.inputMint);
   return {
-    action: "BUY",
-    token: swap.outputSymbol || swap.outputMint.slice(0, 6),
-    tokenMint: swap.outputMint,
-    quoteMint: swap.inputMint,
+    action: buy ? "BUY" : "SELL",
+    token:
+      (buy ? swap.outputSymbol : swap.inputSymbol) ||
+      (buy ? swap.outputMint : swap.inputMint).slice(0, 6),
+    tokenMint: buy ? swap.outputMint : swap.inputMint,
+    quoteMint: buy ? swap.inputMint : swap.outputMint,
   };
 }

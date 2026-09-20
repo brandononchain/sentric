@@ -1,4 +1,9 @@
-import { ScoredSignal, SignalQuery, ConsensusQuery, ConsensusSignal } from "../types";
+import {
+  ScoredSignal,
+  SignalQuery,
+  ConsensusQuery,
+  ConsensusSignal,
+} from "../types";
 import { config } from "../config";
 
 export class SignalStore {
@@ -11,6 +16,11 @@ export class SignalStore {
   }
 
   add(signal: ScoredSignal): void {
+    if (
+      signal.expiresAt <= Date.now() ||
+      signal.timestamp > Date.now() + 30_000
+    )
+      return;
     this.signals.set(signal.id, signal);
 
     // Enforce max capacity
@@ -23,15 +33,18 @@ export class SignalStore {
   /** Return all live signals (newest first) — used by the X monitor to
    *  cross-reference tweets against recent on-chain buys. */
   getAll(): ScoredSignal[] {
+    this.sweep();
     return Array.from(this.signals.values()).sort(
-      (a, b) => b.timestamp - a.timestamp
+      (a, b) => b.timestamp - a.timestamp,
     );
   }
 
   query(q: SignalQuery): ScoredSignal[] {
     const now = Date.now();
-    const maxAgeMs = (q.maxAge || config.signalTtlSeconds) * 1000;
-    const limit = q.limit || 50;
+    const maxAgeMs =
+      Math.min(q.maxAge ?? config.signalTtlSeconds, config.signalTtlSeconds) *
+      1000;
+    const limit = q.limit ?? 50;
 
     let results: ScoredSignal[] = [];
 
@@ -50,7 +63,7 @@ export class SignalStore {
         const tokenMatch = q.tokenFilter.some(
           (t) =>
             signal.token.toUpperCase().includes(t.toUpperCase()) ||
-            signal.tokenMint === t
+            signal.tokenMint === t,
         );
         if (!tokenMatch) continue;
       }
@@ -60,7 +73,7 @@ export class SignalStore {
         const kolMatch = q.kolFilter.some(
           (k) =>
             signal.kol.label.toLowerCase().includes(k.toLowerCase()) ||
-            signal.kol.address === k
+            signal.kol.address === k,
         );
         if (!kolMatch) continue;
       }
@@ -75,6 +88,7 @@ export class SignalStore {
   }
 
   getConsensus(q: ConsensusQuery): ConsensusSignal[] {
+    this.sweep();
     const now = Date.now();
     const windowMs = (q.window || 300) * 1000;
     const minKols = q.minKols || 2;
@@ -99,7 +113,7 @@ export class SignalStore {
       if (now - signal.timestamp > windowMs) continue;
       if (signal.conviction < minConviction) continue;
 
-      const mint = signal.tokenMint;
+      const mint = `${signal.tokenMint}:${signal.action}`;
       if (!tokenGroups.has(mint)) {
         tokenGroups.set(mint, []);
         tokenNames.set(mint, signal.token);
@@ -107,7 +121,9 @@ export class SignalStore {
 
       // Deduplicate by KOL address (only latest signal per KOL per token)
       const group = tokenGroups.get(mint)!;
-      const existingIdx = group.findIndex((g) => g.address === signal.kol.address);
+      const existingIdx = group.findIndex(
+        (g) => g.address === signal.kol.address,
+      );
       if (existingIdx >= 0) {
         if (signal.timestamp > group[existingIdx].timestamp) {
           group[existingIdx] = {
@@ -141,7 +157,8 @@ export class SignalStore {
 
       results.push({
         token: tokenNames.get(mint) || mint.slice(0, 8),
-        tokenMint: mint,
+        tokenMint: mint.split(":")[0],
+        action: kols[0].action,
         kols,
         avgConviction: Math.round(avgConviction),
         kolCount: kols.length,
@@ -152,7 +169,7 @@ export class SignalStore {
 
     // Sort by kolCount desc, then avgConviction desc
     results.sort(
-      (a, b) => b.kolCount - a.kolCount || b.avgConviction - a.avgConviction
+      (a, b) => b.kolCount - a.kolCount || b.avgConviction - a.avgConviction,
     );
 
     return results.slice(0, limit);
@@ -161,19 +178,24 @@ export class SignalStore {
   // Get recent unique tokens being traded by KOLs (for consensus detection)
   getRecentTokenTraders(
     tokenMint: string,
-    windowMs: number
+    windowMs: number,
+    action?: "BUY" | "SELL",
+    excludeAddress?: string,
   ): string[] {
     const now = Date.now();
     const traders = new Set<string>();
     for (const signal of this.signals.values()) {
       if (signal.tokenMint !== tokenMint) continue;
       if (now - signal.timestamp > windowMs) continue;
-      traders.add(signal.kol.label);
+      if (action && signal.action !== action) continue;
+      if (signal.kol.address === excludeAddress) continue;
+      traders.add(signal.kol.address);
     }
     return Array.from(traders);
   }
 
   size(): number {
+    this.sweep();
     return this.signals.size;
   }
 

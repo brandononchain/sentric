@@ -22,20 +22,17 @@ const CA_REGEX = new RegExp(`\\b${BASE58}{32,44}\\b`, "g");
 const CASHTAG_REGEX = /\$([A-Z][A-Z0-9]{1,9})\b/g;
 
 // DEX / chart URLs that embed a mint in the path
-const LINK_PATTERNS: Array<{ host: RegExp; extract: (url: string) => string | null }> = [
+const LINK_PATTERNS: Array<{
+  host: RegExp;
+  extract: (url: string) => string | null;
+}> = [
   {
     // pump.fun/coin/<mint>  or  pump.fun/<mint>
     host: /pump\.fun/i,
     extract: (url) => {
-      const m = url.match(new RegExp(`pump\\.fun/(?:coin/)?(${BASE58}{32,44})`, "i"));
-      return m ? m[1] : null;
-    },
-  },
-  {
-    // dexscreener.com/solana/<pairOrMint>
-    host: /dexscreener\.com/i,
-    extract: (url) => {
-      const m = url.match(new RegExp(`dexscreener\\.com/solana/(${BASE58}{32,44})`, "i"));
+      const m = url.match(
+        new RegExp(`pump\\.fun/(?:coin/)?(${BASE58}{32,44})`, "i"),
+      );
       return m ? m[1] : null;
     },
   },
@@ -43,7 +40,9 @@ const LINK_PATTERNS: Array<{ host: RegExp; extract: (url: string) => string | nu
     // birdeye.so/token/<mint>
     host: /birdeye\.so/i,
     extract: (url) => {
-      const m = url.match(new RegExp(`birdeye\\.so/token/(${BASE58}{32,44})`, "i"));
+      const m = url.match(
+        new RegExp(`birdeye\\.so/token/(${BASE58}{32,44})`, "i"),
+      );
       return m ? m[1] : null;
     },
   },
@@ -51,7 +50,9 @@ const LINK_PATTERNS: Array<{ host: RegExp; extract: (url: string) => string | nu
     // jup.ag/swap/SOL-<mint>  or  jup.ag/tokens/<mint>
     host: /jup\.ag/i,
     extract: (url) => {
-      const m = url.match(new RegExp(`jup\\.ag/(?:swap/[^-]+-|tokens/)(${BASE58}{32,44})`, "i"));
+      const m = url.match(
+        new RegExp(`jup\\.ag/(?:swap/[^-]+-|tokens/)(${BASE58}{32,44})`, "i"),
+      );
       return m ? m[1] : null;
     },
   },
@@ -59,7 +60,9 @@ const LINK_PATTERNS: Array<{ host: RegExp; extract: (url: string) => string | nu
     // solscan.io/token/<mint>
     host: /solscan\.io/i,
     extract: (url) => {
-      const m = url.match(new RegExp(`solscan\\.io/token/(${BASE58}{32,44})`, "i"));
+      const m = url.match(
+        new RegExp(`solscan\\.io/token/(${BASE58}{32,44})`, "i"),
+      );
       return m ? m[1] : null;
     },
   },
@@ -71,7 +74,7 @@ const KNOWN_NON_TOKENS = new Set<string>([
   "So11111111111111111111111111111111111111112", // wSOL
   "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v", // USDC
   "Es9vMFrzaCERmJfrF4H2FYD4KCoNkY11McCe8BenwNYB", // USDT
-  "JUP6LkbZbjS1jKKwapdHNy74zcZ3tLUZoi5QNyVTaV4",  // Jupiter program
+  "JUP6LkbZbjS1jKKwapdHNy74zcZ3tLUZoi5QNyVTaV4", // Jupiter program
 ]);
 
 // URL detector
@@ -85,7 +88,12 @@ export function extractTokens(text: string): ExtractedToken[] {
   const urls = text.match(URL_REGEX) || [];
   for (const url of urls) {
     for (const pattern of LINK_PATTERNS) {
-      if (pattern.host.test(url)) {
+      if (
+        pattern.host.test(new URL(url).hostname) &&
+        /^(pump\.fun|birdeye\.so|jup\.ag|solscan\.io)$/.test(
+          new URL(url).hostname,
+        )
+      ) {
         const mint = pattern.extract(url);
         if (mint && !KNOWN_NON_TOKENS.has(mint) && !seen.has(mint)) {
           seen.add(mint);

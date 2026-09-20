@@ -1,4 +1,4 @@
-import { v4 as uuid } from "uuid";
+import { randomUUID as uuid } from "node:crypto";
 import { config } from "../config";
 import { KolStore } from "../config/kols";
 import { SignalStore } from "../store/signal-store";
@@ -42,10 +42,11 @@ export class XMonitor {
   private socialSignals: SocialSignal[] = [];
   private timer: NodeJS.Timeout | null = null;
   private isRunning = false;
+  private ticking = false;
 
   constructor(
     private kolStore: KolStore,
-    private signalStore: SignalStore
+    private signalStore: SignalStore,
   ) {
     const { provider, name } = createSocialProvider();
     this.provider = provider;
@@ -54,6 +55,23 @@ export class XMonitor {
 
   isEnabled(): boolean {
     return this.providerName !== "none";
+  }
+
+  addWallet(kol: KolProfile): void {
+    if (!kol.xHandle || this.monitored.has(kol.address)) return;
+    this.monitored.set(kol.address, {
+      kol,
+      xHandle: kol.xHandle,
+      xUserId: kol.xUserId || null,
+      lastTweetId: null,
+      nextPollAt: 0,
+      pollIntervalMs:
+        kol.tier === "s"
+          ? config.socialFastPollMs
+          : kol.tier === "a"
+            ? config.socialMidPollMs
+            : config.socialSlowPollMs,
+    });
   }
 
   getProviderName(): string {
@@ -78,8 +96,11 @@ export class XMonitor {
     await this.initMonitoredKols();
 
     // Tick every 5s; each tick polls whichever KOLs are due
+    if (!this.isRunning) return;
     this.timer = setInterval(() => {
-      this.tick().catch((err) => console.error("[X-MONITOR] Tick failed:", err));
+      this.tick().catch((err) =>
+        console.error("[X-MONITOR] Tick failed:", err),
+      );
     }, 5000);
 
     console.log(`[X-MONITOR] Monitoring ${this.monitored.size} KOL timelines`);
@@ -100,7 +121,8 @@ export class XMonitor {
     const slowMs = config.socialSlowPollMs;
 
     for (const kol of this.kolStore.getAll()) {
-      const xHandle = kol.xHandle || labelToXHandle(kol.label);
+      const xHandle = kol.xHandle;
+      if (!xHandle) continue; // Explicitly configured attribution only; labels are not verified identities.
 
       // Tiered polling interval
       let interval = slowMs;
@@ -120,7 +142,7 @@ export class XMonitor {
     // Resolve user IDs + enrich profiles for S/A tier only (cost control).
     // B/C tier resolve lazily on first poll.
     const priority = Array.from(this.monitored.values()).filter(
-      (m) => m.kol.tier === "s" || m.kol.tier === "a"
+      (m) => m.kol.tier === "s" || m.kol.tier === "a",
     );
 
     for (const m of priority) {
@@ -148,25 +170,32 @@ export class XMonitor {
 
     // Credibility multiplier: log-scaled followers + verification bonus
     // 10k followers ~ 0.4, 100k ~ 0.6, 1M ~ 0.8, +0.15 if verified, capped 1.0
-    const followerScore = profile.followers > 0
-      ? Math.min(0.8, Math.log10(profile.followers) / 7.5)
-      : 0;
+    const followerScore =
+      profile.followers > 0
+        ? Math.min(0.8, Math.log10(profile.followers) / 7.5)
+        : 0;
     const verifiedBonus = profile.verified ? 0.15 : 0;
     kol.socialCredibility = Math.min(1, followerScore + verifiedBonus);
   }
 
   private async tick(): Promise<void> {
-    const now = Date.now();
-    const due = Array.from(this.monitored.values()).filter(
-      (m) => m.nextPollAt <= now
-    );
+    if (this.ticking || !this.isRunning) return;
+    this.ticking = true;
+    try {
+      const now = Date.now();
+      const due = Array.from(this.monitored.values()).filter(
+        (m) => m.nextPollAt <= now,
+      );
 
-    // Poll at most a few per tick to spread out rate limit usage
-    const batch = due.slice(0, 5);
+      // Poll at most a few per tick to spread out rate limit usage
+      const batch = due.slice(0, 5);
 
-    for (const m of batch) {
-      await this.pollKol(m);
-      m.nextPollAt = now + m.pollIntervalMs;
+      for (const m of batch) {
+        await this.pollKol(m);
+        m.nextPollAt = Date.now() + m.pollIntervalMs;
+      }
+    } finally {
+      this.ticking = false;
     }
   }
 
@@ -179,7 +208,7 @@ export class XMonitor {
 
     const posts = await this.provider.getRecentPosts(
       m.xUserId,
-      m.lastTweetId || undefined
+      m.lastTweetId || undefined,
     );
     if (posts.length === 0) return;
 
@@ -187,10 +216,25 @@ export class XMonitor {
     m.lastTweetId = posts[0].id;
 
     for (const post of posts) {
-      if (post.extractedTokens.length === 0) continue;
+      if (
+        !this.isRunning ||
+        post.extractedTokens.length === 0 ||
+        Date.now() - post.createdAt > SOCIAL_SIGNAL_TTL_MS
+      )
+        continue;
+      if (
+        this.socialSignals.some(
+          (s) => s.tweetId === post.id && s.kolAddress === m.kol.address,
+        )
+      )
+        continue;
 
       // Cross-reference with on-chain: did this KOL buy any of these tokens?
-      const onChain = this.findOnChainMatch(m.kol.address, post.extractedTokens);
+      const onChain = this.findOnChainMatch(
+        m.kol.address,
+        post.extractedTokens,
+        post.createdAt,
+      );
 
       const detectedAt = Date.now();
       const signal: SocialSignal = {
@@ -213,11 +257,13 @@ export class XMonitor {
       this.addSocialSignal(signal);
 
       const tokenStr = post.extractedTokens
-        .map((t) => (t.type === "cashtag" ? "$" + t.value : t.value.slice(0, 8)))
+        .map((t) =>
+          t.type === "cashtag" ? "$" + t.value : t.value.slice(0, 8),
+        )
         .join(", ");
       console.log(
         `[X-MONITOR] ${signal.priority.toUpperCase()} — ${m.kol.label} tweeted: ${tokenStr}` +
-        (onChain ? " [matched on-chain buy]" : "")
+          (onChain ? " [matched on-chain buy]" : ""),
       );
     }
   }
@@ -228,7 +274,8 @@ export class XMonitor {
    */
   private findOnChainMatch(
     kolAddress: string,
-    tokens: { mint?: string }[]
+    tokens: { mint?: string }[],
+    postTimestamp: number,
   ): string | null {
     const mints = tokens.map((t) => t.mint).filter(Boolean) as string[];
     if (mints.length === 0) return null;
@@ -237,7 +284,11 @@ export class XMonitor {
     const tenMinAgo = Date.now() - 10 * 60 * 1000;
 
     for (const sig of recent) {
-      if (sig.timestamp < tenMinAgo) continue;
+      if (
+        sig.timestamp < tenMinAgo ||
+        Math.abs(sig.timestamp - postTimestamp) > 600000
+      )
+        continue;
       if (sig.kol.address !== kolAddress) continue;
       if (sig.action !== "BUY") continue;
       if (mints.includes(sig.tokenMint)) {
@@ -249,6 +300,7 @@ export class XMonitor {
 
   private addSocialSignal(signal: SocialSignal): void {
     this.socialSignals.unshift(signal);
+    this.socialSignals.sort((a, b) => b.timestamp - a.timestamp);
     // Trim
     if (this.socialSignals.length > MAX_SOCIAL_SIGNALS) {
       this.socialSignals = this.socialSignals.slice(0, MAX_SOCIAL_SIGNALS);
@@ -264,8 +316,23 @@ export class XMonitor {
   }): SocialSignal[] {
     const now = Date.now();
     let signals = this.socialSignals.filter(
-      (s) => now - s.detectedAt < SOCIAL_SIGNAL_TTL_MS
+      (s) => now - s.detectedAt < SOCIAL_SIGNAL_TTL_MS,
     );
+
+    for (const s of signals) {
+      if (!s.matchedOnChain) {
+        const match = this.findOnChainMatch(
+          s.kolAddress,
+          s.tokens,
+          s.timestamp,
+        );
+        if (match) {
+          s.matchedOnChain = true;
+          s.onChainSignalId = match;
+          s.priority = "confirmed";
+        }
+      }
+    }
 
     if (opts?.priority) {
       signals = signals.filter((s) => s.priority === opts.priority);
