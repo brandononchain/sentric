@@ -91,7 +91,7 @@ Only successful, attributable base-asset-to-token or token-to-base swaps are inc
 
 Paid routes use the official `@x402/express`, `@x402/core` and `@x402/svm` v2 packages for verification and settlement. Arbitrary strings in payment headers are never accepted as proof. Configure:
 
-- `SENTRIC_DEV_MODE=false` and `NODE_ENV=production` (production refuses development bypass).
+- `SENTRIC_DEV_MODE=false` and `NODE_ENV=production` (production ignores legacy development-bypass flags and keeps paid routes closed).
 - `TREASURY_WALLET`: recipient public key; no private key required by this server.
 - `X402_FACILITATOR_URL`: an HTTPS facilitator supporting the selected network and exact SVM scheme.
 - `X402_FACILITATOR_TOKEN`: optional bearer token for facilitators using static bearer authentication. Providers requiring JWT auth need a provider-specific auth adapter.

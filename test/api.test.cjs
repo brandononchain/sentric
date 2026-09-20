@@ -102,12 +102,9 @@ test("local API: bypass works, malformed queries fail, admin writes require auth
   assert.equal(health.payments, "development_bypass");
   assert.equal((await fetch(r.url + "/v1/signals/social")).status, 503);
 });
-test("production rejects bypass; missing payment configuration fails closed", async (t) => {
+test("production ignores bypass; missing payment configuration fails closed", async (t) => {
   const previous = process.env.NODE_ENV;
   process.env.NODE_ENV = "production";
-  assert.throws(() => createApp(), /Development/);
-  process.env.NODE_ENV = previous || "";
-  config.devMode = false;
   const r = await runtime(t);
   try {
     assert.equal(
@@ -119,7 +116,7 @@ test("production rejects bypass; missing payment configuration fails closed", as
       503,
     );
   } finally {
-    config.devMode = true;
+    process.env.NODE_ENV = previous || "";
   }
 });
 test("wallet additions persist with DATA_DIR; stores do not share seed object mutations", () => {

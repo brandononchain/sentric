@@ -9,9 +9,7 @@ export function createPaymentGate(): {
   middleware: RequestHandler;
   status: () => string;
 } {
-  if (config.devMode) {
-    if (process.env.NODE_ENV === "production")
-      throw new Error("SENTRIC_DEV_MODE is forbidden in production");
+  if (config.devMode && process.env.NODE_ENV !== "production") {
     return {
       status: () => "development_bypass",
       middleware: (_req, res, next) => {
@@ -117,26 +115,22 @@ export function createPaymentGate(): {
           await ready;
         }
         if (!middleware) {
-          res
-            .status(503)
-            .json({
-              error: "payments_unavailable",
-              message:
-                "Payment facilitator is unavailable. No payment has been requested.",
-            });
+          res.status(503).json({
+            error: "payments_unavailable",
+            message:
+              "Payment facilitator is unavailable. No payment has been requested.",
+          });
           return;
         }
         try {
           await middleware(req, res, next);
         } catch {
           if (!res.headersSent)
-            res
-              .status(503)
-              .json({
-                error: "payment_processing_failed",
-                message:
-                  "Do not retry a signed payment automatically; check settlement status first.",
-              });
+            res.status(503).json({
+              error: "payment_processing_failed",
+              message:
+                "Do not retry a signed payment automatically; check settlement status first.",
+            });
         }
       },
     };
@@ -144,13 +138,11 @@ export function createPaymentGate(): {
   return {
     status: () => state,
     middleware: (_req, res) => {
-      res
-        .status(503)
-        .json({
-          error: "payments_not_configured",
-          message:
-            "Configure a Solana x402 facilitator and treasury, or enable local development mode.",
-        });
+      res.status(503).json({
+        error: "payments_not_configured",
+        message:
+          "Configure a Solana x402 facilitator and treasury, or enable local development mode.",
+      });
     },
   };
 }

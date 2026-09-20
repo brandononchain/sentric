@@ -72,8 +72,6 @@ export function validateConfig(): string[] {
   if (!config.heliusApiKey) errors.push("HELIUS_API_KEY is required");
   if (!config.treasuryWallet)
     errors.push("TREASURY_WALLET is required for x402 payments");
-  if (config.devMode && process.env.NODE_ENV === "production")
-    errors.push("Development payment bypass is forbidden in production");
   for (const [name, value] of Object.entries({
     port: config.port,
     signalTtlSeconds: config.signalTtlSeconds,

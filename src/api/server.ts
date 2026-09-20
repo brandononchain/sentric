@@ -24,7 +24,9 @@ import { z } from "zod";
 
 export function createApp() {
   if (config.devMode && process.env.NODE_ENV === "production")
-    throw new Error("Development mode cannot run in production");
+    console.warn(
+      "[CONFIG] Ignoring SENTRIC_DEV_MODE/SENTRY_DEV_MODE in production",
+    );
   const invalid = validateConfig().filter(
     (e) => !e.startsWith("HELIUS_API_KEY") && !e.startsWith("TREASURY_WALLET"),
   );
