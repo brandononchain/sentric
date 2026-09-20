@@ -329,10 +329,12 @@ npm test
       <p>
         This repository serves the website <strong>and</strong> API from one
         Node service, keeping browser requests same-origin. Railway:
-        <code>npm ci &amp;&amp; npm run build</code>, start
+        <code>npm ci --include=dev &amp;&amp; npm run build</code>, start
         <code>npm start</code>, health route <code>/health</code>,
         <code>HOST=0.0.0.0</code>, and the platform-provided <code>PORT</code>.
-        See <code>railway.json</code>.
+        See <code>railway.json</code>. The explicit dev-dependency install makes
+        the TypeScript compiler available during production builds; the deployed
+        runtime still uses production mode.
       </p>
       <p>
         Set <code>DATA_DIR</code> to a mounted persistent volume for wallet

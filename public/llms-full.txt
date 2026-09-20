@@ -101,7 +101,7 @@ USDC mint/decimals come from the official scheme's network definitions. A config
 
 ## Deploy
 
-This repository serves the website **and** API from one Node service, keeping browser requests same-origin. Railway: `npm ci && npm run build`, start `npm start`, health route `/health`, `HOST=0.0.0.0`, and the platform-provided `PORT`. See `railway.json`.
+This repository serves the website **and** API from one Node service, keeping browser requests same-origin. Railway: `npm ci --include=dev && npm run build`, start `npm start`, health route `/health`, `HOST=0.0.0.0`, and the platform-provided `PORT`. See `railway.json`. The explicit dev-dependency install makes the TypeScript compiler available during production builds; the deployed runtime still uses production mode.
 
 Set `DATA_DIR` to a mounted persistent volume for wallet additions. Without it, additions last only until restart. Signals and social context are intentionally ephemeral; deploy one process/replica. Redis is not implemented. Multi-replica ingestion, shared rate limiting and durable signal history require shared infrastructure before scaling out.
 
