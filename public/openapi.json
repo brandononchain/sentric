@@ -1,0 +1,1198 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "Sentric API",
+    "version": "0.2.0",
+    "description": "Open-source Solana wallet intelligence. Millisecond timestamps; heuristic scores. Data availability depends on provider configuration.",
+    "license": {
+      "name": "MIT",
+      "url": "https://opensource.org/license/mit"
+    }
+  },
+  "servers": [
+    {
+      "url": "/",
+      "description": "Current Sentric instance"
+    }
+  ],
+  "paths": {
+    "/health": {
+      "get": {
+        "summary": "Check service health",
+        "operationId": "check_service_health",
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "string"
+                    },
+                    "dataMode": {
+                      "type": "string"
+                    },
+                    "payments": {
+                      "type": "string"
+                    },
+                    "ingestion": {
+                      "type": "object",
+                      "properties": {
+                        "enabled": {
+                          "type": "boolean"
+                        },
+                        "stale": {
+                          "type": "boolean"
+                        },
+                        "lastSuccessAt": {
+                          "type": ["integer", "null"]
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Rate limited",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Provider or payments unavailable",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        },
+        "parameters": []
+      }
+    },
+    "/v1": {
+      "get": {
+        "summary": "Discover API",
+        "operationId": "discover_api",
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "name": {
+                      "type": "string"
+                    },
+                    "version": {
+                      "type": "string"
+                    },
+                    "docs": {
+                      "type": "string"
+                    },
+                    "openapi": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Rate limited",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Provider or payments unavailable",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        },
+        "parameters": []
+      }
+    },
+    "/v1/kols": {
+      "get": {
+        "summary": "List watched wallets",
+        "operationId": "list_watched_wallets",
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "kols": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "address": {
+                            "type": "string"
+                          },
+                          "label": {
+                            "type": "string"
+                          },
+                          "tier": {
+                            "type": "string"
+                          },
+                          "attribution": {
+                            "type": "string"
+                          },
+                          "metricsSource": {
+                            "type": "string"
+                          },
+                          "winRate": {
+                            "type": "null"
+                          },
+                          "rugAvoidance": {
+                            "type": "null"
+                          },
+                          "totalTrades": {
+                            "type": "null"
+                          },
+                          "xHandle": {
+                            "type": ["string", "null"]
+                          }
+                        }
+                      }
+                    },
+                    "count": {
+                      "type": "integer"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Rate limited",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Provider or payments unavailable",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        },
+        "parameters": []
+      },
+      "post": {
+        "summary": "Add watched wallet",
+        "security": [
+          {
+            "adminBearer": []
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {}
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid body",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Already tracked",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Not configured",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "address": {
+                    "type": "string"
+                  },
+                  "label": {
+                    "type": "string"
+                  },
+                  "tier": {
+                    "enum": ["s", "a", "b", "c"]
+                  },
+                  "xHandle": {
+                    "type": "string"
+                  }
+                },
+                "required": ["address"]
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/kols/count": {
+      "get": {
+        "summary": "Count watched wallets",
+        "operationId": "count_watched_wallets",
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "count": {
+                      "type": "integer"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Rate limited",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Provider or payments unavailable",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        },
+        "parameters": []
+      }
+    },
+    "/v1/kols/{address}": {
+      "get": {
+        "summary": "Get watched wallet",
+        "operationId": "get_watched_wallet",
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "address": {
+                      "type": "string"
+                    },
+                    "label": {
+                      "type": "string"
+                    },
+                    "tier": {
+                      "type": "string"
+                    },
+                    "attribution": {
+                      "type": "string"
+                    },
+                    "metricsSource": {
+                      "type": "string"
+                    },
+                    "winRate": {
+                      "type": "null"
+                    },
+                    "rugAvoidance": {
+                      "type": "null"
+                    },
+                    "totalTrades": {
+                      "type": "null"
+                    },
+                    "xHandle": {
+                      "type": ["string", "null"]
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Rate limited",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Provider or payments unavailable",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Wallet not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "address",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ]
+      }
+    },
+    "/v1/stats": {
+      "get": {
+        "summary": "Read aggregate statistics",
+        "operationId": "read_aggregate_statistics",
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "signalCount": {
+                      "type": "integer"
+                    },
+                    "buys": {
+                      "type": "integer"
+                    },
+                    "sells": {
+                      "type": "integer"
+                    },
+                    "avgConviction": {
+                      "type": "integer"
+                    },
+                    "uniqueTokens": {
+                      "type": "integer"
+                    },
+                    "activeKols": {
+                      "type": "integer"
+                    },
+                    "totalKolsTracked": {
+                      "type": "integer"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Rate limited",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Provider or payments unavailable",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        },
+        "parameters": []
+      }
+    },
+    "/v1/signals/preview": {
+      "get": {
+        "summary": "Read free signal preview",
+        "operationId": "read_free_signal_preview",
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "signals": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/Signal"
+                      }
+                    },
+                    "dataMode": {
+                      "type": "string"
+                    },
+                    "limited": {
+                      "const": true
+                    },
+                    "ingestion": {
+                      "type": "object",
+                      "properties": {}
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Rate limited",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Provider or payments unavailable",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        },
+        "parameters": []
+      }
+    },
+    "/v1/signals": {
+      "get": {
+        "summary": "Query scored signals",
+        "operationId": "query_scored_signals",
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "signals": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/Signal"
+                      }
+                    },
+                    "count": {
+                      "type": "integer"
+                    },
+                    "query": {
+                      "type": "object",
+                      "properties": {}
+                    },
+                    "dataMode": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Rate limited",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Provider or payments unavailable",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "402": {
+            "description": "Payment required or rejected; use an x402-enabled client",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {}
+                }
+              }
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "minConviction",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 100
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 100
+            }
+          },
+          {
+            "name": "maxAge",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 86400
+            }
+          },
+          {
+            "name": "action",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "enum": ["BUY", "SELL"]
+            }
+          },
+          {
+            "name": "tokenFilter",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "kolFilter",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "description": "Uses x402 v2 PAYMENT-SIGNATURE / PAYMENT-REQUIRED / PAYMENT-RESPONSE headers. Local development bypass is forbidden in production."
+      }
+    },
+    "/v1/signals/consensus": {
+      "get": {
+        "summary": "Query wallet consensus",
+        "operationId": "query_wallet_consensus",
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "consensus": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "tokenMint": {
+                            "type": "string"
+                          },
+                          "token": {
+                            "type": "string"
+                          },
+                          "action": {
+                            "enum": ["BUY", "SELL"]
+                          },
+                          "kolCount": {
+                            "type": "integer"
+                          },
+                          "avgConviction": {
+                            "type": "integer"
+                          },
+                          "kols": {
+                            "type": "array",
+                            "items": {
+                              "type": "object",
+                              "properties": {
+                                "address": {
+                                  "type": "string"
+                                },
+                                "label": {
+                                  "type": "string"
+                                },
+                                "conviction": {
+                                  "type": "number"
+                                },
+                                "action": {
+                                  "type": "string"
+                                },
+                                "timestamp": {
+                                  "type": "integer"
+                                }
+                              }
+                            }
+                          },
+                          "firstSeen": {
+                            "type": "integer"
+                          },
+                          "lastSeen": {
+                            "type": "integer"
+                          }
+                        }
+                      }
+                    },
+                    "count": {
+                      "type": "integer"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Rate limited",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Provider or payments unavailable",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "402": {
+            "description": "Payment required or rejected; use an x402-enabled client",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {}
+                }
+              }
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "minKols",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "minimum": 2,
+              "maximum": 100
+            }
+          },
+          {
+            "name": "window",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 86400
+            }
+          },
+          {
+            "name": "minConviction",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 100
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 100
+            }
+          }
+        ],
+        "description": "Uses x402 v2 PAYMENT-SIGNATURE / PAYMENT-REQUIRED / PAYMENT-RESPONSE headers. Local development bypass is forbidden in production."
+      }
+    },
+    "/v1/signals/social": {
+      "get": {
+        "summary": "Query social context",
+        "operationId": "query_social_context",
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "signals": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "tweetId": {
+                            "type": "string"
+                          },
+                          "tweetUrl": {
+                            "type": "string"
+                          },
+                          "kolAddress": {
+                            "type": "string"
+                          },
+                          "text": {
+                            "type": "string"
+                          },
+                          "priority": {
+                            "enum": ["alpha", "confirmed"]
+                          },
+                          "timestamp": {
+                            "type": "integer"
+                          },
+                          "matchedOnChain": {
+                            "type": "boolean"
+                          }
+                        }
+                      }
+                    },
+                    "count": {
+                      "type": "integer"
+                    },
+                    "provider": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Rate limited",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Provider or payments unavailable",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "402": {
+            "description": "Payment required or rejected; use an x402-enabled client",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {}
+                }
+              }
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "priority",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "enum": ["alpha", "confirmed"]
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 100
+            }
+          }
+        ],
+        "description": "Uses x402 v2 PAYMENT-SIGNATURE / PAYMENT-REQUIRED / PAYMENT-RESPONSE headers. Local development bypass is forbidden in production."
+      }
+    },
+    "/v1/kols/discover": {
+      "post": {
+        "summary": "Discover candidate wallets",
+        "security": [
+          {
+            "adminBearer": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {}
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid body",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Already tracked",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Not configured",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "Signal": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "kol": {
+            "type": "object",
+            "properties": {
+              "label": {
+                "type": "string"
+              },
+              "address": {
+                "type": "string"
+              },
+              "tier": {
+                "type": "string"
+              },
+              "attribution": {
+                "type": "string"
+              }
+            }
+          },
+          "action": {
+            "enum": ["BUY", "SELL"]
+          },
+          "token": {
+            "type": "string"
+          },
+          "tokenMint": {
+            "type": "string"
+          },
+          "quoteMint": {
+            "type": "string"
+          },
+          "conviction": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 100
+          },
+          "scoreType": {
+            "const": "heuristic"
+          },
+          "historicalMetrics": {
+            "type": "string"
+          },
+          "breakdown": {
+            "type": "object",
+            "properties": {
+              "positionSizeScore": {
+                "type": "number"
+              },
+              "holdHistoryScore": {
+                "type": "number"
+              },
+              "historicalPnlScore": {
+                "type": "number"
+              },
+              "rugAvoidanceScore": {
+                "type": "number"
+              },
+              "consensusScore": {
+                "type": "number"
+              }
+            }
+          },
+          "consensusKols": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "timestamp": {
+            "type": "integer"
+          },
+          "expiresAt": {
+            "type": "integer"
+          },
+          "signature": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "kol",
+          "action",
+          "tokenMint",
+          "conviction",
+          "timestamp",
+          "signature"
+        ]
+      },
+      "Error": {
+        "type": "object",
+        "properties": {
+          "error": {
+            "type": "string"
+          },
+          "message": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "securitySchemes": {
+      "adminBearer": {
+        "type": "http",
+        "scheme": "bearer"
+      }
+    }
+  }
+}

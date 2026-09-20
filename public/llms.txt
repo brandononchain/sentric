@@ -1,0 +1,17 @@
+# Sentric
+
+> Open-source Solana wallet intelligence for AI agents. REST API and read-only MCP tools. MIT-licensed TypeScript.
+
+Sentric provides scored wallet swaps, same-direction consensus and optional social context. It does not execute trades. Conviction is a heuristic, not a probability of profit. Watchlist labels are operator-supplied; unknown historical performance is not represented as measured data.
+
+## Reference
+- [Integration guide](https://sentric.sh/docs/): setup, MCP tools, payments, methodology and limitations.
+- [OpenAPI](https://sentric.sh/openapi.json): routes, filters and response schemas.
+- [Complete reference](https://sentric.sh/llms-full.txt): text documentation for agent retrieval.
+- [Source](https://github.com/brandononchain/sentric): server, tests, MCP client and examples.
+
+## Runtime
+- [Health](https://sentric.sh/health): check provider availability and freshness.
+- [Free preview](https://sentric.sh/v1/signals/preview): at most seven recent signals.
+
+Full signal access uses x402 v2 when configured; development bypass is local-only and forbidden in production. An unavailable service is not evidence that no wallets are trading.

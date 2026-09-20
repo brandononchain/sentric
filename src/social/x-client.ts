@@ -39,6 +39,7 @@ class XApiProvider implements SocialProvider {
     try {
       const res = await fetch(`${this.base}/users/by/username/${clean}`, {
         headers: this.headers,
+        signal: AbortSignal.timeout(10000),
       });
       if (!res.ok) return null;
       const data = (await res.json()) as any;
@@ -53,7 +54,7 @@ class XApiProvider implements SocialProvider {
     try {
       const res = await fetch(
         `${this.base}/users/by/username/${clean}?user.fields=public_metrics,verified,created_at`,
-        { headers: this.headers }
+        { headers: this.headers, signal: AbortSignal.timeout(10000) },
       );
       if (!res.ok) return null;
       const data = (await res.json()) as any;
@@ -71,12 +72,18 @@ class XApiProvider implements SocialProvider {
     }
   }
 
-  async getRecentPosts(userId: string, sinceId?: string): Promise<SocialPost[]> {
+  async getRecentPosts(
+    userId: string,
+    sinceId?: string,
+  ): Promise<SocialPost[]> {
     try {
       let url = `${this.base}/users/${userId}/tweets?max_results=10&tweet.fields=created_at&exclude=retweets,replies`;
       if (sinceId) url += `&since_id=${sinceId}`;
 
-      const res = await fetch(url, { headers: this.headers });
+      const res = await fetch(url, {
+        headers: this.headers,
+        signal: AbortSignal.timeout(10000),
+      });
       if (!res.ok) return [];
 
       const data = (await res.json()) as any;
@@ -121,6 +128,7 @@ class SocialDataProvider implements SocialProvider {
     try {
       const res = await fetch(`${this.base}/twitter/user/${clean}`, {
         headers: this.headers,
+        signal: AbortSignal.timeout(10000),
       });
       if (!res.ok) return null;
       const data = (await res.json()) as any;
@@ -135,6 +143,7 @@ class SocialDataProvider implements SocialProvider {
     try {
       const res = await fetch(`${this.base}/twitter/user/${clean}`, {
         headers: this.headers,
+        signal: AbortSignal.timeout(10000),
       });
       if (!res.ok) return null;
       const u = (await res.json()) as any;
@@ -151,13 +160,16 @@ class SocialDataProvider implements SocialProvider {
     }
   }
 
-  async getRecentPosts(userId: string, sinceId?: string): Promise<SocialPost[]> {
+  async getRecentPosts(
+    userId: string,
+    sinceId?: string,
+  ): Promise<SocialPost[]> {
     try {
       // SocialData uses search; query the user's tweets
-      const res = await fetch(
-        `${this.base}/twitter/user/${userId}/tweets`,
-        { headers: this.headers }
-      );
+      const res = await fetch(`${this.base}/twitter/user/${userId}/tweets`, {
+        headers: this.headers,
+        signal: AbortSignal.timeout(10000),
+      });
       if (!res.ok) return [];
 
       const data = (await res.json()) as any;
@@ -205,14 +217,20 @@ class NoopProvider implements SocialProvider {
 /**
  * Factory — picks the provider based on env config.
  */
-export function createSocialProvider(): { provider: SocialProvider; name: string } {
+export function createSocialProvider(): {
+  provider: SocialProvider;
+  name: string;
+} {
   const which = (config.socialProvider || "none").toLowerCase();
 
   if (which === "x" && config.xBearerToken) {
     return { provider: new XApiProvider(config.xBearerToken), name: "x-api" };
   }
   if (which === "socialdata" && config.socialDataApiKey) {
-    return { provider: new SocialDataProvider(config.socialDataApiKey), name: "socialdata" };
+    return {
+      provider: new SocialDataProvider(config.socialDataApiKey),
+      name: "socialdata",
+    };
   }
   return { provider: new NoopProvider(), name: "none" };
 }

@@ -1,31 +1,53 @@
 {
   "name": "sentric",
-  "version": "0.1.0",
-  "description": "The Bloomberg Terminal for Solana agents",
+  "version": "0.2.0",
+  "description": "Open-source Solana wallet intelligence for AI agents",
   "main": "dist/index.js",
   "scripts": {
     "build": "tsc",
     "start": "node dist/index.js",
-    "dev": "tsc && SENTRY_DEV_MODE=true node dist/index.js",
-    "watch": "tsc --watch"
+    "dev": "tsc && node dist/index.js",
+    "watch": "tsc --watch",
+    "test": "npm run build && node --test test/*.test.cjs",
+    "mcp": "node dist/agent/mcp.js"
   },
-  "keywords": ["solana", "ai-agents", "x402", "kol", "signal", "defi"],
+  "keywords": [
+    "solana",
+    "ai-agents",
+    "x402",
+    "kol",
+    "signal",
+    "defi"
+  ],
   "author": "brandononchain",
   "license": "MIT",
   "dependencies": {
-    "@solana/web3.js": "^1.98.4",
-    "@types/cors": "^2.8.19",
-    "@types/express": "^5.0.6",
-    "@types/node": "^25.6.1",
-    "@types/uuid": "^10.0.0",
-    "@types/ws": "^8.18.1",
-    "bs58": "^6.0.0",
+    "@modelcontextprotocol/sdk": "^1.30.0",
+    "@x402/core": "^2.26.0",
+    "@x402/express": "^2.26.0",
+    "@x402/svm": "^2.26.0",
     "cors": "^2.8.6",
     "dotenv": "^17.4.2",
     "express": "^5.2.1",
-    "ioredis": "^5.10.1",
-    "typescript": "^6.0.3",
-    "uuid": "^14.0.0",
-    "ws": "^8.20.0"
+    "express-rate-limit": "^8.7.0",
+    "helmet": "^8.3.0",
+    "ws": "^8.20.0",
+    "zod": "^4.6.5",
+    "@solana/kit": "^5.5.1"
+  },
+  "engines": {
+    "node": ">=22.12.0"
+  },
+  "homepage": "https://sentric.sh",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/brandononchain/sentric.git"
+  },
+  "devDependencies": {
+    "@types/cors": "^2.8.19",
+    "@types/express": "^5.0.6",
+    "@types/node": "^25.6.1",
+    "@types/ws": "^8.18.1",
+    "typescript": "~5.9.3"
   }
 }

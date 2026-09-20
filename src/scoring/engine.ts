@@ -8,7 +8,6 @@ import { config } from "../config";
 import { classifySwapAction } from "../ingestion/parser";
 import { SignalStore } from "../store/signal-store";
 import { priceOracle } from "../oracle/price";
-import { v4 as uuid } from "uuid";
 
 export class ScoringEngine {
   constructor(private signalStore: SignalStore) {}
@@ -16,17 +15,19 @@ export class ScoringEngine {
   async score(swap: ParsedSwap, kol: KolProfile): Promise<ScoredSignal> {
     const { action, token, tokenMint, quoteMint } = classifySwapAction(swap);
 
-    const breakdown = await this.computeBreakdown(swap, kol, tokenMint);
+    const breakdown = await this.computeBreakdown(swap, kol, tokenMint, action);
     const conviction = this.weightedScore(breakdown);
 
     // Find other KOLs trading this token recently (5 min window)
     const consensusKols = this.signalStore.getRecentTokenTraders(
       tokenMint,
-      300_000
+      300_000,
+      action,
+      kol.address,
     );
 
     const signal: ScoredSignal = {
-      id: uuid(),
+      id: `${swap.signature}:${kol.address}`,
       kol,
       swap,
       action,
@@ -37,7 +38,8 @@ export class ScoringEngine {
       breakdown,
       consensusKols,
       timestamp: swap.timestamp || Date.now(),
-      expiresAt: (swap.timestamp || Date.now()) + config.signalTtlSeconds * 1000,
+      expiresAt:
+        (swap.timestamp || Date.now()) + config.signalTtlSeconds * 1000,
     };
 
     return signal;
@@ -46,14 +48,15 @@ export class ScoringEngine {
   private async computeBreakdown(
     swap: ParsedSwap,
     kol: KolProfile,
-    tokenMint: string
+    tokenMint: string,
+    action: "BUY" | "SELL",
   ): Promise<ConvictionBreakdown> {
     return {
       positionSizeScore: await this.scorePositionSize(swap),
       holdHistoryScore: this.scoreHoldHistory(kol),
       historicalPnlScore: this.scoreHistoricalPnl(kol),
       rugAvoidanceScore: this.scoreRugAvoidance(kol),
-      consensusScore: this.scoreConsensus(tokenMint),
+      consensusScore: this.scoreConsensus(tokenMint, action, kol.address),
     };
   }
 
@@ -80,12 +83,15 @@ export class ScoringEngine {
     } else {
       // Try to price the input token directly
       const inputPrice = await priceOracle.getPrice(swap.inputMint);
-      if (inputPrice > 0) {
-        usdEstimate = (swap.inputAmount / 1e9) * inputPrice; // assume 9 decimals
+      if (inputPrice > 0 && swap.inputDecimals !== undefined) {
+        usdEstimate =
+          (swap.inputAmount / 10 ** swap.inputDecimals!) * inputPrice;
       } else {
         return 50; // can't price — neutral
       }
     }
+
+    if (!Number.isFinite(usdEstimate) || usdEstimate <= 0) return 50;
 
     // Scoring thresholds (USD value)
     if (usdEstimate >= 50_000) return 100;
@@ -104,6 +110,7 @@ export class ScoringEngine {
    * Quick flippers get lower scores.
    */
   private scoreHoldHistory(kol: KolProfile): number {
+    if (kol.metricsSource !== "operator") return 50;
     const avgHoldHours = kol.avgHoldDurationMs / 3_600_000;
 
     if (avgHoldHours >= 24) return 95;
@@ -119,6 +126,7 @@ export class ScoringEngine {
    * KOLs with better track records produce higher conviction signals.
    */
   private scoreHistoricalPnl(kol: KolProfile): number {
+    if (kol.metricsSource !== "operator") return 50;
     const winRate = kol.historicalWinRate;
     const minTrades = 50; // need enough data to be meaningful
 
@@ -127,10 +135,10 @@ export class ScoringEngine {
       return 50;
     }
 
-    if (winRate >= 0.70) return 95;
-    if (winRate >= 0.60) return 80;
-    if (winRate >= 0.50) return 60;
-    if (winRate >= 0.40) return 40;
+    if (winRate >= 0.7) return 95;
+    if (winRate >= 0.6) return 80;
+    if (winRate >= 0.5) return 60;
+    if (winRate >= 0.4) return 40;
     return 25;
   }
 
@@ -139,12 +147,13 @@ export class ScoringEngine {
    * KOLs who consistently avoid rug pulls are more trustworthy.
    */
   private scoreRugAvoidance(kol: KolProfile): number {
+    if (kol.metricsSource !== "operator") return 50;
     const rate = kol.rugAvoidanceRate;
 
     if (rate >= 0.95) return 100;
-    if (rate >= 0.90) return 85;
-    if (rate >= 0.80) return 65;
-    if (rate >= 0.70) return 45;
+    if (rate >= 0.9) return 85;
+    if (rate >= 0.8) return 65;
+    if (rate >= 0.7) return 45;
     return 25;
   }
 
@@ -152,10 +161,16 @@ export class ScoringEngine {
    * Consensus Score (weight: 10%)
    * Multiple KOLs trading the same token = stronger signal.
    */
-  private scoreConsensus(tokenMint: string): number {
+  private scoreConsensus(
+    tokenMint: string,
+    action: "BUY" | "SELL",
+    excludeAddress: string,
+  ): number {
     const recentTraders = this.signalStore.getRecentTokenTraders(
       tokenMint,
-      300_000 // 5 minute window
+      300_000,
+      action,
+      excludeAddress, // 5 minute window
     );
 
     const count = recentTraders.length;

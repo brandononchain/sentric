@@ -1,0 +1,375 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>Sentric Documentation — Solana Wallet API and MCP</title>
+    <meta
+      name="description"
+      content="Run Sentric, connect MCP tools, configure Solana x402 payments and understand wallet signal scoring."
+    />
+    <link rel="canonical" href="https://sentric.sh/docs/" />
+    <style>
+      body {
+        margin: 0;
+        background: #0a0a0c;
+        color: #e6e6ea;
+        font: 16px/1.8 system-ui;
+      }
+      main {
+        max-width: 850px;
+        margin: auto;
+        padding: 40px 24px;
+      }
+      a {
+        color: #b8f0c4;
+      }
+      h1,
+      h2 {
+        font-family: Georgia, serif;
+        line-height: 1.2;
+      }
+      h1 {
+        font-size: 48px;
+      }
+      h2 {
+        margin-top: 56px;
+        font-size: 30px;
+      }
+      p {
+        overflow-wrap: anywhere;
+      }
+      pre {
+        background: #16191a;
+        border: 1px solid #2a2a30;
+        border-radius: 12px;
+        padding: 24px;
+        overflow: auto;
+        font-size: 13px;
+      }
+      nav {
+        display: flex;
+        gap: 24px;
+        flex-wrap: wrap;
+      }
+      h2 {
+        scroll-margin-top: 24px;
+      }
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        display: block;
+        overflow: auto;
+        font-size: 14px;
+      }
+      td,
+      th {
+        padding: 12px;
+        border-bottom: 1px solid #2a2a30;
+        text-align: left;
+      }
+      code {
+        font-size: 0.9em;
+      }
+      li {
+        margin: 8px 0;
+      }
+    </style>
+  </head>
+  <body>
+    <main>
+      <nav>
+        <a href="/">Sentric</a><a href="/openapi.json">OpenAPI</a
+        ><a href="/llms.txt">LLM reference</a
+        ><a href="https://github.com/brandononchain/sentric">GitHub</a>
+      </nav>
+      <h1 id="sentric">Sentric</h1>
+      <p>
+        <strong>Open-source Solana wallet intelligence for AI agents.</strong>
+      </p>
+      <p>
+        Sentric watches a configurable Solana wallet list and exposes scored
+        swaps, same-direction consensus, and optional social context through
+        REST and MCP. It is a research data service: it does not custody funds,
+        execute trades, or require an LLM provider.
+      </p>
+      <p>
+        <a href="https://sentric.sh">Website</a> ·
+        <a href="/docs/">Integration guide</a> ·
+        <a href="/openapi.json">OpenAPI</a> ·
+        <a href="/llms-full.txt">LLM reference</a> ·
+        <a href="https://github.com/brandononchain/sentric/blob/main/LICENSE"
+          >MIT license</a
+        >
+      </p>
+      <h2 id="run-locally">Run locally</h2>
+      <p>Requires Node.js <strong>22.12 or newer</strong>.</p>
+      <pre><code class="language-sh">git clone https://github.com/brandononchain/sentric.git
+cd sentric
+npm ci
+cp .env.example .env
+npm run dev
+</code></pre>
+      <p>
+        Open http://127.0.0.1:3000 for the branded site and
+        <code>/docs/</code> for documentation. The example configuration enables
+        development payment bypass. Without a Helius key, the service returns an
+        explicit <code>unconfigured</code> state and empty signal arrays; it
+        does not generate fake activity.
+      </p>
+      <pre><code class="language-sh">curl http://127.0.0.1:3000/health
+curl 'http://127.0.0.1:3000/v1/signals?action=BUY&amp;minConviction=60&amp;limit=10'
+node examples/research-agent.mjs
+npm test
+</code></pre>
+      <h2 id="connect-an-agent">Connect an agent</h2>
+      <p>
+        The repository includes a working read-only MCP server and a TypeScript
+        HTTP client. After <code>npm run build</code>, add this configuration to
+        your MCP-compatible application:
+      </p>
+      <pre><code class="language-json">{
+  &quot;mcpServers&quot;: {
+    &quot;sentric&quot;: {
+      &quot;command&quot;: &quot;node&quot;,
+      &quot;args&quot;: [&quot;/absolute/path/to/sentric/dist/agent/mcp.js&quot;],
+      &quot;env&quot;: { &quot;SENTRIC_API_URL&quot;: &quot;http://127.0.0.1:3000&quot; }
+    }
+  }
+}
+</code></pre>
+      <p>
+        Tools: <code>sentric_status</code>, <code>sentric_wallets</code>,
+        <code>sentric_preview</code>, <code>sentric_signals</code>,
+        <code>sentric_consensus</code>. The stdio process keeps protocol output
+        clean. It never holds wallet keys or automatically signs payments.
+        Preview/status/wallet tools work against production; full
+        signal/consensus tools work against a local development API and return
+        structured payment errors against a paid API.
+      </p>
+      <p>
+        For paid integrations, inject an x402-enabled <code>fetch</code> into
+        <code>SentricClient</code> from <code>src/agent/client.ts</code>. Set
+        per-request and total spending limits in the calling agent. There is no
+        published <code>@sentric/agent-kit</code> package.
+      </p>
+      <h2 id="live-ingestion">Live ingestion</h2>
+      <p>
+        Set <code>HELIUS_API_KEY</code>; optionally set
+        <code>HELIUS_WS_URL</code> to an Enhanced WebSocket URL supported by
+        your Helius plan. Polling runs in batches, waits for completion, then
+        waits ten seconds. WebSocket transaction signatures are hydrated through
+        Helius Enhanced Transactions before parsing. Polling is a fallback, not
+        a guaranteed complete archive; high-volume wallets can exceed the
+        20-transaction polling window. Provider plans and rate limits affect
+        freshness and cost. No latency guarantee is made.
+      </p>
+      <p>
+        Set <code>JUPITER_API_KEY</code> for Jupiter Price API v3. Token amounts
+        retain their decimals. Missing prices score neutrally instead of being
+        treated as zero-value trades or rugs. Stablecoin quote valuation assumes
+        nominal $1 and does not detect depegs.
+      </p>
+      <p>
+        <code>BACKFILL_ON_START=true</code> loads only recent signals inside the
+        configured retention window. <code>AUTO_DISCOVERY=true</code> enables
+        experimental provider-based discovery and requires
+        <code>ADMIN_API_KEY</code>. Both are opt-in because they consume
+        provider requests.
+      </p>
+      <h2 id="api">API</h2>
+      <table>
+        <thead>
+          <tr>
+            <th>Route</th>
+            <th>Access</th>
+            <th>Purpose</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><code>GET /health</code></td>
+            <td>Free</td>
+            <td>
+              Process health, ingestion freshness, payments and social state
+            </td>
+          </tr>
+          <tr>
+            <td><code>GET /v1</code></td>
+            <td>Free</td>
+            <td>API discovery</td>
+          </tr>
+          <tr>
+            <td>
+              <code>GET /v1/kols</code>, <code>/v1/kols/count</code>,
+              <code>/v1/kols/:address</code>
+            </td>
+            <td>Free</td>
+            <td>Operator-supplied watchlist</td>
+          </tr>
+          <tr>
+            <td><code>GET /v1/stats</code></td>
+            <td>Free</td>
+            <td>Five-minute aggregates</td>
+          </tr>
+          <tr>
+            <td><code>GET /v1/signals/preview</code></td>
+            <td>Free</td>
+            <td>Up to seven recent signals</td>
+          </tr>
+          <tr>
+            <td><code>GET /v1/signals</code></td>
+            <td>x402</td>
+            <td>Filtered signals; default $0.001 USDC</td>
+          </tr>
+          <tr>
+            <td><code>GET /v1/signals/consensus</code></td>
+            <td>x402</td>
+            <td>Same-direction, distinct-wallet groups; default $0.005 USDC</td>
+          </tr>
+          <tr>
+            <td><code>GET /v1/signals/social</code></td>
+            <td>x402</td>
+            <td>Optional configured social provider; default $0.001 USDC</td>
+          </tr>
+          <tr>
+            <td><code>POST /v1/kols</code></td>
+            <td>Admin bearer token</td>
+            <td>Add a wallet</td>
+          </tr>
+          <tr>
+            <td><code>POST /v1/kols/discover</code></td>
+            <td>Admin bearer token</td>
+            <td>Trigger experimental discovery</td>
+          </tr>
+        </tbody>
+      </table>
+      <p>
+        Signal filters: <code>action=BUY|SELL</code>,
+        <code>minConviction=0..100</code>, <code>maxAge=1..86400</code> seconds,
+        comma-separated <code>tokenFilter</code> / <code>kolFilter</code>, and
+        <code>limit=1..100</code>. Retention caps available history. Results are
+        newest-first, not highest-score-first. Timestamps are Unix milliseconds.
+      </p>
+      <pre><code class="language-sh">curl -X POST http://127.0.0.1:3000/v1/kols \
+  -H &quot;Authorization: Bearer $ADMIN_API_KEY&quot; \
+  -H 'Content-Type: application/json' \
+  -d '{&quot;address&quot;:&quot;YOUR_SOLANA_PUBLIC_KEY&quot;,&quot;label&quot;:&quot;Research wallet&quot;,&quot;tier&quot;:&quot;b&quot;}'
+</code></pre>
+      <p>
+        Optionally supply <code>xHandle</code> only when you have verified the
+        attribution. Seed labels are historical operator-supplied watchlist
+        entries, <strong>not independently verified ownership claims</strong>.
+        No automatic label-to-X identity inference is performed. For existing
+        seed wallets, edit the seed configuration (or persisted wallet file
+        while stopped) to set an explicit verified handle.
+      </p>
+      <h2 id="methodology">Scoring and data quality</h2>
+      <p>
+        The 0–100 conviction value is a
+        <strong>heuristic, not a profit probability</strong>. Weights: absolute
+        USD trade size 40%, holding history 20%, historical PnL 15%, rug
+        avoidance 15%, same-direction wallet consensus 10%. Historical metrics
+        are unknown by default and contribute neutral scores of 50. Public win
+        rate, rug avoidance and trade-count fields are null rather than seeded
+        guesses. Historical metric computation requires a separate complete
+        accounting pipeline; this release does not claim to provide it.
+      </p>
+      <p>
+        Only successful, attributable base-asset-to-token or token-to-base swaps
+        are included. Ambiguous multi-asset and token-to-token swaps are
+        excluded. Consensus deduplicates wallet addresses, separates buys and
+        sells, and excludes the current wallet from its own scoring context.
+        Repeated ingestion of the same wallet/transaction is idempotent. No
+        signal should be interpreted without checking freshness, the
+        transaction, token identity, liquidity and your own risk policy.
+      </p>
+      <h2 id="x402-configuration">x402 configuration</h2>
+      <p>
+        Paid routes use the official <code>@x402/express</code>,
+        <code>@x402/core</code> and <code>@x402/svm</code> v2 packages for
+        verification and settlement. Arbitrary strings in payment headers are
+        never accepted as proof. Configure:
+      </p>
+      <ul>
+        <li>
+          <code>SENTRIC_DEV_MODE=false</code> and
+          <code>NODE_ENV=production</code> (production refuses development
+          bypass).
+        </li>
+        <li>
+          <code>TREASURY_WALLET</code>: recipient public key; no private key
+          required by this server.
+        </li>
+        <li>
+          <code>X402_FACILITATOR_URL</code>: an HTTPS facilitator supporting the
+          selected network and exact SVM scheme.
+        </li>
+        <li>
+          <code>X402_FACILITATOR_TOKEN</code>: optional bearer token for
+          facilitators using static bearer authentication. Providers requiring
+          JWT auth need a provider-specific auth adapter.
+        </li>
+        <li>
+          <code>X402_NETWORK</code>: devnet
+          <code>solana:EtWTRABZaYq6iMfeYKouRu166VU2xqa1</code> (default), or
+          mainnet <code>solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp</code>.
+        </li>
+      </ul>
+      <p>
+        USDC mint/decimals come from the official scheme's network definitions.
+        A configured facilitator is initialized lazily; healthy public routes do
+        not depend on it. Missing/unavailable payment configuration returns
+        <strong>503</strong>, never unpaid access. Valid unpaid requests receive
+        the SDK's <strong>402</strong> terms. Query validation occurs before
+        payment processing. An uncertain settlement outcome must be reconciled
+        before retrying; do not blindly resend signed payments.
+      </p>
+      <h2 id="deploy">Deploy</h2>
+      <p>
+        This repository serves the website <strong>and</strong> API from one
+        Node service, keeping browser requests same-origin. Railway:
+        <code>npm ci &amp;&amp; npm run build</code>, start
+        <code>npm start</code>, health route <code>/health</code>,
+        <code>HOST=0.0.0.0</code>, and the platform-provided <code>PORT</code>.
+        See <code>railway.json</code>.
+      </p>
+      <p>
+        Set <code>DATA_DIR</code> to a mounted persistent volume for wallet
+        additions. Without it, additions last only until restart. Signals and
+        social context are intentionally ephemeral; deploy one process/replica.
+        Redis is not implemented. Multi-replica ingestion, shared rate limiting
+        and durable signal history require shared infrastructure before scaling
+        out.
+      </p>
+      <p>
+        If <code>sentric.sh</code> remains on a separate static host, configure
+        that host to proxy <code>/v1/*</code> and <code>/health</code> to the
+        Node backend, or move the domain to the Node service. Do not deploy just
+        <code>public/</code> and expect an API to exist. Trust only the exact
+        reverse-proxy hop count via <code>TRUST_PROXY_HOPS</code>.
+      </p>
+      <p>
+        Before enabling paid mainnet access, test your configured facilitator on
+        devnet with a funded test wallet, including rejection/replay handling.
+        Automated tests use a local mock facilitator and do not spend USDC or
+        prove a live deployment is configured.
+      </p>
+      <h2 id="contribute">Contribute</h2>
+      <p>
+        See
+        <a
+          href="https://github.com/brandononchain/sentric/blob/main/CONTRIBUTING.md"
+          >CONTRIBUTING.md</a
+        >
+        and
+        <a
+          href="https://github.com/brandononchain/sentric/blob/main/SECURITY.md"
+          >SECURITY.md</a
+        >. Run <code>npm test</code> before opening a pull request. CI verifies
+        Node 22 and 24. No secrets, keypairs or <code>.env</code> files belong
+        in commits.
+      </p>
+    </main>
+  </body>
+</html>

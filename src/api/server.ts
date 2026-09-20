@@ -1,5 +1,9 @@
-import express, { Request, Response } from "express";
+import express, { RequestHandler, ErrorRequestHandler } from "express";
 import cors from "cors";
+import helmet from "helmet";
+import { rateLimit } from "express-rate-limit";
+import { timingSafeEqual } from "node:crypto";
+import path from "node:path";
 import { config, validateConfig } from "../config";
 import { KolStore } from "../config/kols";
 import { SignalStore } from "../store/signal-store";
@@ -8,416 +12,381 @@ import { IngestionEngine } from "../ingestion/engine";
 import { KolAutoSourcer } from "../sourcing/auto-sourcer";
 import { KolStatsEngine } from "../stats/kol-stats";
 import { XMonitor } from "../social/x-monitor";
-import { x402PaymentGate, devModeBypass } from "./x402";
-import { SignalQuery, ConsensusQuery } from "../types";
+import { createPaymentGate } from "./x402";
+import {
+  signalQuery,
+  consensusQuery,
+  socialQuery,
+  walletBody,
+} from "./validation";
+import { KolProfile, ScoredSignal } from "../types";
+import { z } from "zod";
 
-export function createServer() {
+export function createApp() {
+  if (config.devMode && process.env.NODE_ENV === "production")
+    throw new Error("Development mode cannot run in production");
+  const invalid = validateConfig().filter(
+    (e) => !e.startsWith("HELIUS_API_KEY") && !e.startsWith("TREASURY_WALLET"),
+  );
+  if (invalid.length) throw new Error(invalid.join("; "));
   const app = express();
-
-  app.use(cors());
-  app.use(express.json());
-  app.use(devModeBypass());
-
-  // Initialize core components
-  const kolStore = new KolStore();
-  const signalStore = new SignalStore();
+  app.disable("x-powered-by");
+  // Set an exact hop count only when deployed behind a known reverse proxy.
+  const proxyHops = Number(process.env.TRUST_PROXY_HOPS || 0);
+  if (!Number.isInteger(proxyHops) || proxyHops < 0)
+    throw new Error("Invalid TRUST_PROXY_HOPS");
+  if (proxyHops) app.set("trust proxy", proxyHops);
+  app.use(
+    helmet({
+      contentSecurityPolicy: {
+        directives: {
+          "script-src": ["'self'", "'unsafe-inline'"],
+          "style-src": [
+            "'self'",
+            "'unsafe-inline'",
+            "https://fonts.googleapis.com",
+          ],
+          "font-src": ["'self'", "https://fonts.gstatic.com"],
+          "img-src": ["'self'", "data:"],
+          "connect-src": ["'self'"],
+        },
+      },
+    }),
+  );
+  app.use(
+    cors({
+      exposedHeaders: [
+        "PAYMENT-REQUIRED",
+        "PAYMENT-RESPONSE",
+        "X-Sentric-Payment-Mode",
+      ],
+    }),
+  );
+  app.use(express.json({ limit: "16kb" }));
+  app.use(
+    "/v1",
+    rateLimit({
+      windowMs: 60000,
+      limit: 120,
+      standardHeaders: "draft-8",
+      legacyHeaders: false,
+    }),
+  );
+  app.use("/v1", (_req, res, next) => {
+    res.setHeader("Cache-Control", "no-store");
+    next();
+  });
+  const kolStore = new KolStore(),
+    signalStore = new SignalStore();
   const scoringEngine = new ScoringEngine(signalStore);
   const xMonitor = new XMonitor(kolStore, signalStore);
   const ingestionEngine = new IngestionEngine(
     kolStore,
     scoringEngine,
-    signalStore
+    signalStore,
   );
-
-  // =========================================
-  // Health / Info (free, no payment)
-  // =========================================
-
-  app.get("/", (_req: Request, res: Response) => {
-    res.json({
-      name: "Sentric",
-      version: "0.1.0",
-      description:
-        "Agent-native KOL signal intelligence on Solana via x402 micropayments",
-      endpoints: {
-        signals: "GET /v1/signals (x402 gated, $0.001 USDC)",
-        consensus: "GET /v1/signals/consensus (x402 gated, $0.005 USDC)",
-        kols: "GET /v1/kols (free)",
-        health: "GET /health (free)",
-      },
-      stats: {
-        kolsTracked: kolStore.size(),
-        signalsInMemory: signalStore.size(),
-        uptime: process.uptime(),
-      },
-      x402: {
-        protocol: "https://solana.com/x402",
-        asset: "USDC",
-        network: "solana:mainnet-beta",
-        facilitator: "Coinbase x402",
-      },
-    });
-  });
-
-  app.get("/health", (_req: Request, res: Response) => {
+  const autoSourcer = new KolAutoSourcer(
+    kolStore,
+    `http://127.0.0.1:${config.port}`,
+  );
+  const statsEngine = new KolStatsEngine(kolStore, signalStore, scoringEngine);
+  const payment = createPaymentGate();
+  const requireLiveData: RequestHandler = (_req, res, next) => {
+    const status = ingestionEngine.getStatus();
+    if (
+      !config.devMode &&
+      (!status.enabled || !status.running || status.stale)
+    ) {
+      res.status(503).json({
+        error: "live_data_unavailable",
+        message:
+          "Live ingestion is unavailable or stale; no payment requested.",
+      });
+      return;
+    }
+    next();
+  };
+  const dataMode = () => (config.heliusApiKey ? "live" : "unconfigured");
+  const admin: RequestHandler = (req, res, next) => {
+    if (!config.adminApiKey) {
+      res.status(503).json({ error: "admin_not_configured" });
+      return;
+    }
+    const supplied = Buffer.from(req.get("Authorization") || ""),
+      expected = Buffer.from(`Bearer ${config.adminApiKey}`);
+    if (
+      supplied.length !== expected.length ||
+      !timingSafeEqual(supplied, expected)
+    ) {
+      res.status(401).json({ error: "unauthorized" });
+      return;
+    }
+    next();
+  };
+  const validate =
+    (schema: z.ZodType): RequestHandler =>
+    (req, res, next) => {
+      const result = schema.safeParse(req.query);
+      if (!result.success) {
+        res
+          .status(400)
+          .json({ error: "invalid_query", details: result.error.issues });
+        return;
+      }
+      res.locals.query = result.data;
+      next();
+    };
+  app.get("/health", (_req, res) =>
     res.json({
       status: "ok",
+      version: "0.2.0",
+      dataMode: dataMode(),
+      ingestion: ingestionEngine.getStatus(),
+      payments: payment.status(),
+      social: xMonitor.getStats(),
       kolsTracked: kolStore.size(),
       signalsInMemory: signalStore.size(),
       uptimeSeconds: Math.round(process.uptime()),
-    });
+    }),
+  );
+  app.get("/v1", (_req, res) =>
+    res.json({
+      name: "Sentric",
+      version: "0.2.0",
+      description: "Open-source Solana wallet intelligence for AI agents",
+      docs: "/docs/",
+      openapi: "/openapi.json",
+      payments: payment.status(),
+      dataMode: dataMode(),
+    }),
+  );
+  const walletView = (k: KolProfile) => ({
+    address: k.address,
+    label: k.label,
+    tier: k.tier,
+    attribution: "operator_supplied",
+    metricsSource: k.metricsSource || "unknown",
+    winRate: null,
+    rugAvoidance: null,
+    totalTrades: null,
+    xHandle: k.xHandle || null,
   });
-
-  // =========================================
-  // KOL Info (free tier)
-  // =========================================
-
-  app.get("/v1/kols", (_req: Request, res: Response) => {
-    const kols = kolStore.getAll().map((k) => ({
-      address: k.address,
-      label: k.label,
-      tier: k.tier,
-      winRate: Math.round(k.historicalWinRate * 100),
-      rugAvoidance: Math.round(k.rugAvoidanceRate * 100),
-      totalTrades: k.totalTrackedTrades,
-    }));
-    res.json({ kols, count: kols.length });
-  });
-
-  // KOL count — lightweight endpoint for landing page (must be before :address)
-  app.get("/v1/kols/count", (_req: Request, res: Response) => {
-    res.setHeader("Access-Control-Allow-Origin", "*");
-    res.setHeader("Cache-Control", "public, max-age=30");
-    res.json({ count: kolStore.size() });
-  });
-
-  app.get("/v1/kols/:address", (req: Request, res: Response) => {
+  app.get("/v1/kols", (_req, res) =>
+    res.json({
+      kols: kolStore.getAll().map(walletView),
+      count: kolStore.size(),
+    }),
+  );
+  app.get("/v1/kols/count", (_req, res) =>
+    res.json({ count: kolStore.size() }),
+  );
+  app.get("/v1/kols/:address", (req, res) => {
     const kol = kolStore.get(req.params.address as string);
     if (!kol) {
       res.status(404).json({ error: "kol_not_found" });
       return;
     }
-    res.json({
-      address: kol.address,
-      label: kol.label,
-      tier: kol.tier,
-      winRate: Math.round(kol.historicalWinRate * 100),
-      avgHoldHours: Math.round(kol.avgHoldDurationMs / 3_600_000),
-      rugAvoidance: Math.round(kol.rugAvoidanceRate * 100),
-      totalTrades: kol.totalTrackedTrades,
-    });
+    res.json(walletView(kol));
   });
-
-  // =========================================
-  // Add KOL wallets dynamically (POST)
-  // =========================================
-
-  app.post("/v1/kols", (req: Request, res: Response) => {
-    const { address, label, tier, winRate, holdHours, rugAvoidance } = req.body;
-
-    if (!address || typeof address !== "string" || address.length < 32) {
-      res.status(400).json({ error: "invalid_address", message: "Solana address required (32+ chars)" });
+  app.post("/v1/kols", admin, async (req, res) => {
+    const parsed = walletBody.safeParse(req.body);
+    if (!parsed.success) {
+      res
+        .status(400)
+        .json({ error: "invalid_wallet", details: parsed.error.issues });
       return;
     }
-
-    if (kolStore.has(address)) {
-      res.status(409).json({ error: "already_tracked", message: "This wallet is already being tracked" });
+    const data = parsed.data;
+    if (kolStore.has(data.address)) {
+      res.status(409).json({ error: "already_tracked" });
       return;
     }
-
-    const newKol = {
-      address,
-      label: label || address.slice(0, 6),
-      tier: (tier === "s" || tier === "a" || tier === "b") ? tier : "b" as const,
-      historicalWinRate: typeof winRate === "number" ? winRate : 0.5,
-      avgHoldDurationMs: (typeof holdHours === "number" ? holdHours : 2) * 3600000,
-      rugAvoidanceRate: typeof rugAvoidance === "number" ? rugAvoidance : 0.8,
+    const kol: KolProfile = {
+      ...data,
+      label: data.label || data.address.slice(0, 6),
+      historicalWinRate: 0.5,
+      avgHoldDurationMs: 0,
+      rugAvoidanceRate: 0.5,
       totalTrackedTrades: 0,
+      metricsSource: "unknown",
       addedAt: Date.now(),
     };
-
-    kolStore.add(newKol);
-
-    // If ingestion engine is running, subscribe to the new wallet
-    if (config.heliusApiKey) {
-      ingestionEngine.addWallet(address).catch(() => {});
-    }
-
-    res.status(201).json({
-      added: true,
-      kol: {
-        address: newKol.address,
-        label: newKol.label,
-        tier: newKol.tier,
-      },
-      totalKols: kolStore.size(),
-    });
+    kolStore.add(kol);
+    await ingestionEngine.addWallet(kol.address);
+    if (xMonitor.isEnabled()) xMonitor.addWallet(kol);
+    res
+      .status(201)
+      .json({ added: true, kol: walletView(kol), totalKols: kolStore.size() });
   });
-
-  // =========================================
-  // Signals (x402 gated — $0.001 per request)
-  // =========================================
-
+  app.post("/v1/kols/discover", admin, async (_req, res) => {
+    if (!config.heliusApiKey) {
+      res.status(503).json({ error: "ingestion_not_configured" });
+      return;
+    }
+    res.json(await autoSourcer.runOnce());
+  });
+  // Free, explicitly limited preview. No forged payment headers in the frontend.
+  app.get("/v1/signals/preview", (_req, res) =>
+    res.json({
+      signals: signalStore.query({ limit: 7 }).map(sanitizeSignal),
+      dataMode: dataMode(),
+      ingestion: ingestionEngine.getStatus(),
+      limited: true,
+    }),
+  );
   app.get(
     "/v1/signals",
-    x402PaymentGate({ priceUsdc: config.signalPriceUsdc }),
-    (req: Request, res: Response) => {
-      const query: SignalQuery = {
-        minConviction: req.query.minConviction
-          ? parseInt(req.query.minConviction as string)
-          : undefined,
-        tokenFilter: req.query.tokenFilter
-          ? (req.query.tokenFilter as string).split(",")
-          : undefined,
-        maxAge: req.query.maxAge
-          ? parseInt(req.query.maxAge as string)
-          : undefined,
-        kolFilter: req.query.kolFilter
-          ? (req.query.kolFilter as string).split(",")
-          : undefined,
-        action: req.query.action as "BUY" | "SELL" | undefined,
-        limit: req.query.limit
-          ? parseInt(req.query.limit as string)
-          : 50,
-      };
-
-      const signals = signalStore.query(query);
-
+    validate(signalQuery),
+    requireLiveData,
+    payment.middleware,
+    (_req, res) => {
+      const signals = signalStore.query(res.locals.query).map(sanitizeSignal);
       res.json({
-        signals: signals.map(sanitizeSignal),
+        signals,
         count: signals.length,
-        query,
-        payment: (req as any).x402,
+        query: res.locals.query,
+        dataMode: dataMode(),
       });
-    }
+    },
   );
-
-  // =========================================
-  // Consensus (x402 gated — $0.005 per request)
-  // =========================================
-
   app.get(
     "/v1/signals/consensus",
-    x402PaymentGate({ priceUsdc: config.consensusPriceUsdc }),
-    (req: Request, res: Response) => {
-      const query: ConsensusQuery = {
-        minKols: req.query.minKols
-          ? parseInt(req.query.minKols as string)
-          : 2,
-        window: req.query.window
-          ? parseInt(req.query.window as string)
-          : 300,
-        minConviction: req.query.minConviction
-          ? parseInt(req.query.minConviction as string)
-          : undefined,
-        limit: req.query.limit
-          ? parseInt(req.query.limit as string)
-          : 20,
-      };
-
-      const consensus = signalStore.getConsensus(query);
-
+    validate(consensusQuery),
+    requireLiveData,
+    payment.middleware,
+    (_req, res) => {
+      const consensus = signalStore.getConsensus(res.locals.query);
       res.json({
         consensus,
         count: consensus.length,
-        query,
-        payment: (req as any).x402,
+        query: res.locals.query,
+        dataMode: dataMode(),
       });
-    }
+    },
   );
-
-  // =========================================
-  // Social signals (x402 gated) — the EARLIEST signal
-  // A KOL tweeting a token before/as they buy. "alpha" = tweet only,
-  // "confirmed" = tweet matched to an on-chain buy.
-  // =========================================
-
   app.get(
     "/v1/signals/social",
-    x402PaymentGate({ priceUsdc: config.signalPriceUsdc }),
-    (req: Request, res: Response) => {
-      const priority = req.query.priority as "alpha" | "confirmed" | undefined;
-      const limit = req.query.limit
-        ? parseInt(req.query.limit as string)
-        : 50;
-
-      const signals = xMonitor.getSocialSignals({ priority, limit });
-
+    validate(socialQuery),
+    (req, res, next) => {
+      if (!xMonitor.isEnabled() || xMonitor.getStats().monitored === 0) {
+        res.status(503).json({ error: "social_not_configured" });
+        return;
+      }
+      next();
+    },
+    payment.middleware,
+    (_req, res) => {
+      const signals = xMonitor.getSocialSignals(res.locals.query);
       res.json({
         signals,
         count: signals.length,
         provider: xMonitor.getProviderName(),
-        enabled: xMonitor.isEnabled(),
-        payment: (req as any).x402,
       });
-    }
+    },
   );
-
-  // =========================================
-  // Signal Stats (free — for dashboard/monitoring)
-  // =========================================
-
-  app.get("/v1/stats", (_req: Request, res: Response) => {
-    // Aggregate stats without exposing actual signals
-    const allRecent = signalStore.query({ maxAge: 300, limit: 1000 });
-    const buys = allRecent.filter((s) => s.action === "BUY").length;
-    const sells = allRecent.filter((s) => s.action === "SELL").length;
-    const avgConviction =
-      allRecent.length > 0
-        ? Math.round(
-            allRecent.reduce((s, sig) => s + sig.conviction, 0) /
-              allRecent.length
-          )
-        : 0;
-
-    // Unique tokens in recent signals
-    const uniqueTokens = new Set(allRecent.map((s) => s.tokenMint)).size;
-
-    // Unique KOLs active
-    const activeKols = new Set(allRecent.map((s) => s.kol.address)).size;
-
+  app.get("/v1/stats", (_req, res) => {
+    const signals = signalStore.query({
+      maxAge: 300,
+      limit: config.maxSignalsInMemory,
+    });
     res.json({
       window: "5m",
-      signalCount: allRecent.length,
-      buys,
-      sells,
-      avgConviction,
-      uniqueTokens,
-      activeKols,
+      signalCount: signals.length,
+      buys: signals.filter((s) => s.action === "BUY").length,
+      sells: signals.filter((s) => s.action === "SELL").length,
+      avgConviction: signals.length
+        ? Math.round(
+            signals.reduce((sum, s) => sum + s.conviction, 0) / signals.length,
+          )
+        : 0,
+      uniqueTokens: new Set(signals.map((s) => s.tokenMint)).size,
+      activeKols: new Set(signals.map((s) => s.kol.address)).size,
       totalKolsTracked: kolStore.size(),
+      dataMode: dataMode(),
     });
   });
-
-  // =========================================
-  // Manual KOL discovery trigger
-  // =========================================
-
-  const autoSourcer = new KolAutoSourcer(kolStore, `http://localhost:${config.port}`);
-
-  app.post("/v1/kols/discover", async (_req: Request, res: Response) => {
-    if (!config.heliusApiKey) {
-      res.status(503).json({ error: "no_helius_key", message: "Auto-sourcing requires HELIUS_API_KEY" });
-      return;
-    }
-
-    const before = kolStore.size();
-    const results = await autoSourcer.runOnce();
-    const after = kolStore.size();
-
-    res.json({
-      discovered: results.added + results.skipped + results.errors,
-      added: results.added,
-      skipped: results.skipped,
-      errors: results.errors,
-      totalBefore: before,
-      totalAfter: after,
-    });
+  app.use(express.static(path.resolve(__dirname, "../../public")));
+  app.use((_req, res) => {
+    res.status(404).json({ error: "not_found", docs: "/docs/" });
   });
-
-  // =========================================
-  // Start ingestion when server starts
-  // =========================================
-
-  const server = app.listen(config.port, config.host, () => {
-    console.log(`
-╔═══════════════════════════════════════════════════╗
-║                                                   ║
-║   Sentric v0.1.0                          ║
-║   The Bloomberg Terminal for Solana Agents            ║
-║                                                   ║
-║   Server:  http://${config.host}:${config.port}              ║
-║   KOLs:    ${kolStore.size()} wallets tracked                 ║
-║   Payment: x402 / USDC on Solana                  ║
-║                                                   ║
-╚═══════════════════════════════════════════════════╝
-    `);
-
-    // Validate config and start ingestion
-    const errors = validateConfig();
-    if (errors.length > 0) {
-      console.warn("[WARN] Config issues (running in demo mode):");
-      errors.forEach((e) => console.warn(`  - ${e}`));
-      console.warn(
-        "[WARN] Set SENTRY_DEV_MODE=true to bypass x402 payments\n"
-      );
-    }
-
-    // Start ingestion if Helius key is available
-    if (config.heliusApiKey) {
-      // Step 1: Backfill — pull last 24h of KOL trades and compute real stats
-      const statsEngine = new KolStatsEngine(kolStore, signalStore, scoringEngine);
-      statsEngine.backfillAndComputeStats()
-        .then(() => {
-          console.log(`[STARTUP] Backfill complete. Signal store has ${signalStore.size()} signals.`);
-        })
-        .catch(err => {
-          console.error("[STARTUP] Backfill failed (continuing anyway):", err);
-        });
-
-      // Step 2: Start live ingestion
-      ingestionEngine.start().catch((err) => {
-        console.error("[FATAL] Ingestion engine failed to start:", err);
-      });
-
-      // Step 3: Start auto-sourcing KOL wallets (every 6 hours)
-      autoSourcer.start(6 * 60 * 60 * 1000);
-    } else {
-      console.log(
-        "[INFO] No HELIUS_API_KEY — ingestion and auto-sourcing disabled.\n"
-      );
-    }
-
-    // Step 4: Start X social monitor (independent of Helius — needs a
-    // social provider configured). This is the earliest-signal layer.
-    if (xMonitor.isEnabled()) {
-      xMonitor.start().catch((err) => {
-        console.error("[X-MONITOR] Failed to start:", err);
-      });
-    } else {
-      console.log(
-        "[INFO] No SOCIAL_PROVIDER configured — X monitoring disabled.\n"
-      );
-    }
-  });
-
-  // Graceful shutdown
-  process.on("SIGTERM", () => {
-    console.log("[SHUTDOWN] Received SIGTERM");
+  const errorHandler: ErrorRequestHandler = (error, _req, res, _next) => {
+    if (res.headersSent) return;
+    const status =
+      error.type === "entity.parse.failed"
+        ? 400
+        : error.type === "entity.too.large"
+          ? 413
+          : 500;
+    res
+      .status(status)
+      .json({ error: status === 500 ? "internal_error" : "invalid_request" });
+  };
+  app.use(errorHandler);
+  const close = () => {
     ingestionEngine.stop();
+    autoSourcer.stop();
+    statsEngine.stop();
     xMonitor.stop();
     signalStore.destroy();
-    server.close();
-  });
-
-  process.on("SIGINT", () => {
-    console.log("[SHUTDOWN] Received SIGINT");
-    ingestionEngine.stop();
-    xMonitor.stop();
-    signalStore.destroy();
-    server.close();
-    process.exit(0);
-  });
-
-  return { app, server, kolStore, signalStore, scoringEngine, ingestionEngine, xMonitor };
+  };
+  return {
+    app,
+    kolStore,
+    signalStore,
+    scoringEngine,
+    ingestionEngine,
+    xMonitor,
+    autoSourcer,
+    statsEngine,
+    close,
+  };
 }
-
-// Sanitize signal for API response (strip internal data)
-function sanitizeSignal(signal: any) {
+export function createServer() {
+  const runtime = createApp();
+  const server = runtime.app.listen(config.port, config.host, () => {
+    console.log(
+      `[Sentric] http://${config.host}:${config.port} — ${runtime.kolStore.size()} watched wallets`,
+    );
+    if (config.heliusApiKey) {
+      void runtime.ingestionEngine.start();
+      if (config.backfill) void runtime.statsEngine.backfillAndComputeStats();
+      if (config.autoDiscovery && config.adminApiKey)
+        runtime.autoSourcer.start();
+    }
+    if (runtime.xMonitor.isEnabled())
+      void runtime.xMonitor
+        .start()
+        .catch(() => console.error("[SOCIAL] Could not start monitor"));
+  });
+  const shutdown = () => {
+    runtime.close();
+    server.close();
+    server.closeIdleConnections();
+  };
+  process.once("SIGTERM", shutdown);
+  process.once("SIGINT", shutdown);
+  return { ...runtime, server };
+}
+export function sanitizeSignal(signal: ScoredSignal) {
   return {
     id: signal.id,
     kol: {
       label: signal.kol.label,
       address: signal.kol.address,
       tier: signal.kol.tier,
+      attribution: "operator_supplied",
     },
     action: signal.action,
     token: signal.token,
     tokenMint: signal.tokenMint,
     quoteMint: signal.quoteMint,
     conviction: signal.conviction,
+    scoreType: "heuristic",
+    historicalMetrics: signal.kol.metricsSource || "unknown",
     breakdown: signal.breakdown,
     consensusKols: signal.consensusKols,
     timestamp: signal.timestamp,
-    signature: signal.swap?.signature,
+    expiresAt: signal.expiresAt,
+    signature: signal.swap.signature,
   };
 }
